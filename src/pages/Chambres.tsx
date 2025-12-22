@@ -16,7 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { rooms, roomTypes, formatCurrency } from '@/data/mockData';
+import { useHotel } from '@/contexts/HotelContext';
+import { roomTypes, formatCurrency } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { RoomStatus } from '@/types/hotel';
 
@@ -41,6 +42,7 @@ const Chambres = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const { rooms } = useHotel();
 
   const roomsWithTypes = rooms.map(room => ({
     ...room,
