@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel } from '@/contexts/HotelContext';
+import { ReservationForm } from '@/components/reservations/ReservationForm';
 import { formatCurrency, formatDate } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { ReservationStatus } from '@/types/hotel';
@@ -28,6 +29,7 @@ const statusFilters: { value: FilterStatus; label: string }[] = [
 const Reservations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
+  const [showForm, setShowForm] = useState(false);
   const { reservations, checkIn, checkOut } = useHotel();
 
   const filteredReservations = reservations.filter((res) => {
@@ -62,12 +64,17 @@ const Reservations = () => {
         title="Réservations"
         subtitle="Gérez toutes les réservations de votre hôtel"
         actions={
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+          <Button 
+            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+            onClick={() => setShowForm(true)}
+          >
             <Plus className="w-4 h-4" />
             Nouvelle réservation
           </Button>
         }
       />
+
+      <ReservationForm open={showForm} onOpenChange={setShowForm} />
 
       {/* Search and Filters */}
       <div className="gravity-card">
