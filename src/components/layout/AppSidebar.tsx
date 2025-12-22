@@ -33,8 +33,9 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
   const { profile, role, hasRole } = useAuth();
 
+  // Show all items if no role (new user) or filter by role
   const visibleNavItems = navItems.filter(item => 
-    hasRole(item.roles)
+    !role || hasRole(item.roles)
   );
 
   const initials = profile?.name
