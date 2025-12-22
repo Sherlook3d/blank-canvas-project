@@ -1,7 +1,7 @@
 import { 
   BedDouble, 
   CalendarCheck, 
-  Euro, 
+  Banknote, 
   Users,
   Calendar,
   FileText,
@@ -16,6 +16,7 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/data/mockData';
 
 const roomTypeLabels: Record<RoomType, string> = {
   single: 'Simple',
@@ -29,10 +30,6 @@ const amenityIcons: Record<string, React.ElementType> = {
   'Climatisation': Wind,
   'Minibar': Wine,
   'Baignoire': Bath,
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
 };
 
 const formatDate = (dateStr: string) => {
@@ -108,7 +105,7 @@ const Dashboard = () => {
           change={12}
         />
         <KpiCard
-          icon={Euro}
+          icon={Banknote}
           iconColor="yellow"
           title="Revenus du mois"
           value={formatCurrency(monthlyRevenue)}
