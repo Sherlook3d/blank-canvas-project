@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,24 +10,30 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Badge } from '@/components/ui/badge';
 import { LogOut, User, Settings } from 'lucide-react';
 
+const roleLabels: Record<UserRole, string> = {
+  owner: 'Propriétaire',
+  manager: 'Gérant',
+  receptionist: 'Réceptionniste',
+};
+
 export function UserMenu() {
-  const { user, logout } = useAuth();
+  const { user, profile, role, logout } = useAuth();
   const navigate = useNavigate();
 
-  if (!user) return null;
+  if (!user || !profile) return null;
 
-  const initials = user.name
-    .split(' ')
+  const initials = profile.name
+    ?.split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || 'U';
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/auth');
   };
 
@@ -45,9 +51,13 @@ export function UserMenu() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-2">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">@{user.username}</p>
-            <StatusBadge status={user.role} />
+            <p className="text-sm font-medium leading-none">{profile.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+            {role && (
+              <Badge variant="secondary" className="w-fit">
+                {roleLabels[role]}
+              </Badge>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
