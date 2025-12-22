@@ -27,7 +27,7 @@ const Utilisateurs = () => {
   const filteredUsers = users.filter((user) => {
     const matchesSearch = 
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.username.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = 
       activeFilter === 'all' || 
@@ -95,7 +95,7 @@ const Utilisateurs = () => {
                       </div>
                       <div>
                         <p className="font-medium text-foreground">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                        <p className="text-xs text-muted-foreground">@{user.username}</p>
                       </div>
                     </div>
                   </td>
