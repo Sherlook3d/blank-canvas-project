@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { Plus, Search, Calendar, MoreVertical } from 'lucide-react';
+import { Plus, Search, Calendar, LogIn, LogOut, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { 
-  reservations, 
-  formatCurrency, 
-  formatDate 
-} from '@/data/mockData';
+import { useHotel } from '@/contexts/HotelContext';
+import { formatCurrency, formatDate } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { ReservationStatus } from '@/types/hotel';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type FilterStatus = 'all' | ReservationStatus;
 
@@ -25,6 +28,7 @@ const statusFilters: { value: FilterStatus; label: string }[] = [
 const Reservations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
+  const { reservations, checkIn, checkOut } = useHotel();
 
   const filteredReservations = reservations.filter((res) => {
     const matchesSearch = 
@@ -37,6 +41,20 @@ const Reservations = () => {
     
     return matchesSearch && matchesFilter;
   });
+
+  const canCheckIn = (status: ReservationStatus) => 
+    status === 'confirmed' || status === 'pending';
+  
+  const canCheckOut = (status: ReservationStatus) => 
+    status === 'checked_in';
+
+  const handleCheckIn = (reservationId: string) => {
+    checkIn(reservationId);
+  };
+
+  const handleCheckOut = (reservationId: string) => {
+    checkOut(reservationId);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -93,7 +111,7 @@ const Reservations = () => {
                 <th>Dates</th>
                 <th className="text-right">Total</th>
                 <th>Statut</th>
-                <th className="w-10"></th>
+                <th className="w-32">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -142,13 +160,46 @@ const Reservations = () => {
                     <StatusBadge status={reservation.status} />
                   </td>
                   <td>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {canCheckIn(reservation.status) && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="gap-1.5 bg-primary hover:bg-primary/90"
+                          onClick={() => handleCheckIn(reservation.id)}
+                        >
+                          <LogIn className="w-3.5 h-3.5" />
+                          Check-in
+                        </Button>
+                      )}
+                      {canCheckOut(reservation.status) && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="gap-1.5"
+                          onClick={() => handleCheckOut(reservation.id)}
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          Check-out
+                        </Button>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Voir détails</DropdownMenuItem>
+                          <DropdownMenuItem>Modifier</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">Annuler</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </td>
                 </tr>
               ))}
