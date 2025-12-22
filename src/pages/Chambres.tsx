@@ -10,25 +10,30 @@ import {
   Bath,
   LayoutGrid,
   List,
-  MoreVertical,
   Edit2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { useHotel } from '@/contexts/HotelContext';
-import { RoomDetailsModal } from '@/components/chambres/RoomDetailsModal';
-import { AddRoomModal } from '@/components/chambres/AddRoomModal';
-import { roomTypes, formatCurrency } from '@/data/mockData';
+import { useHotel, Room, RoomStatus, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
-import { Room, RoomStatus } from '@/types/hotel';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 type ViewMode = 'grid' | 'list';
 type FilterStatus = 'all' | RoomStatus;
@@ -40,6 +45,20 @@ const statusFilters: { value: FilterStatus; label: string }[] = [
   { value: 'maintenance', label: 'Maintenance' },
 ];
 
+const roomTypeLabels: Record<RoomType, string> = {
+  single: 'Simple',
+  double: 'Double',
+  suite: 'Suite',
+  family: 'Familiale',
+};
+
+const roomTypePrices: Record<RoomType, number> = {
+  single: 80,
+  double: 120,
+  suite: 200,
+  family: 180,
+};
+
 const amenityIcons: Record<string, React.ElementType> = {
   'Wi-Fi': Wifi,
   'Climatisation': Wind,
@@ -47,24 +66,27 @@ const amenityIcons: Record<string, React.ElementType> = {
   'Baignoire': Bath,
 };
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
+};
+
 const Chambres = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [showAddRoom, setShowAddRoom] = useState(false);
-  const { rooms } = useHotel();
+  const [newRoom, setNewRoom] = useState({
+    number: '',
+    floor: 1,
+    type: 'double' as RoomType,
+    status: 'available' as RoomStatus,
+  });
+  const { rooms, isLoading, addRoom } = useHotel();
 
-  const roomsWithTypes = rooms.map(room => ({
-    ...room,
-    roomType: roomTypes.find(rt => rt.id === room.roomTypeId),
-  }));
-
-  const filteredRooms = roomsWithTypes.filter((room) => {
+  const filteredRooms = rooms.filter((room) => {
     const matchesSearch = 
       room.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      room.roomType?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      roomTypeLabels[room.type]?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = activeFilter === 'all' || room.status === activeFilter;
     
@@ -78,10 +100,31 @@ const Chambres = () => {
     maintenance: rooms.filter(r => r.status === 'maintenance').length,
   };
 
-  const handleOpenDetails = (room: Room) => {
-    setSelectedRoom(room);
-    setShowDetails(true);
+  const handleAddRoom = async () => {
+    const success = await addRoom({
+      number: newRoom.number,
+      floor: newRoom.floor,
+      type: newRoom.type,
+      status: newRoom.status,
+      capacity: newRoom.type === 'single' ? 1 : newRoom.type === 'family' ? 4 : 2,
+      price_per_night: roomTypePrices[newRoom.type],
+      amenities: ['Wi-Fi', 'Climatisation'],
+      description: null,
+    });
+    
+    if (success) {
+      setShowAddRoom(false);
+      setNewRoom({ number: '', floor: 1, type: 'double', status: 'available' });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -99,13 +142,65 @@ const Chambres = () => {
         }
       />
 
-      <AddRoomModal open={showAddRoom} onOpenChange={setShowAddRoom} />
-
-      <RoomDetailsModal 
-        open={showDetails} 
-        onOpenChange={setShowDetails} 
-        room={selectedRoom}
-      />
+      {/* Add Room Dialog */}
+      <Dialog open={showAddRoom} onOpenChange={setShowAddRoom}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter une chambre</DialogTitle>
+            <DialogDescription>Créer une nouvelle chambre dans votre hôtel</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="number">Numéro de chambre</Label>
+              <Input
+                id="number"
+                value={newRoom.number}
+                onChange={(e) => setNewRoom({ ...newRoom, number: e.target.value })}
+                placeholder="101"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="floor">Étage</Label>
+              <Input
+                id="floor"
+                type="number"
+                value={newRoom.floor}
+                onChange={(e) => setNewRoom({ ...newRoom, floor: parseInt(e.target.value) || 1 })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="type">Type de chambre</Label>
+              <Select value={newRoom.type} onValueChange={(v) => setNewRoom({ ...newRoom, type: v as RoomType })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single">Simple</SelectItem>
+                  <SelectItem value="double">Double</SelectItem>
+                  <SelectItem value="suite">Suite</SelectItem>
+                  <SelectItem value="family">Familiale</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Statut</Label>
+              <Select value={newRoom.status} onValueChange={(v) => setNewRoom({ ...newRoom, status: v as RoomStatus })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="available">Disponible</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddRoom(false)}>Annuler</Button>
+            <Button onClick={handleAddRoom} disabled={!newRoom.number}>Ajouter</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Search, Filters, and View Toggle */}
       <div className="gravity-card">
@@ -176,7 +271,7 @@ const Chambres = () => {
                   className="absolute top-3 right-3"
                 />
                 <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-foreground/80 rounded text-xs font-medium text-background">
-                  {formatCurrency(room.roomType?.basePrice || 0)}/nuit
+                  {formatCurrency(room.price_per_night)}/nuit
                 </div>
               </div>
               
@@ -184,18 +279,18 @@ const Chambres = () => {
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-semibold text-foreground">{room.roomType?.name} {room.number}</h4>
-                    <p className="text-sm text-muted-foreground">{room.roomType?.name} • Étage {room.floor}</p>
+                    <h4 className="font-semibold text-foreground">{roomTypeLabels[room.type]} {room.number}</h4>
+                    <p className="text-sm text-muted-foreground">{roomTypeLabels[room.type]} • Étage {room.floor}</p>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Users className="w-4 h-4" />
-                    <span>{room.roomType?.capacityAdults}</span>
+                    <span>{room.capacity}</span>
                   </div>
                 </div>
                 
                 {/* Amenities */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {room.roomType?.amenities.slice(0, 4).map((amenity) => {
+                  {room.amenities.slice(0, 4).map((amenity) => {
                     const Icon = amenityIcons[amenity];
                     return (
                       <div 
@@ -223,11 +318,7 @@ const Chambres = () => {
                   >
                     Réserver
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleOpenDetails(room)}
-                  >
+                  <Button variant="outline" size="sm">
                     Détails
                   </Button>
                 </div>
@@ -257,7 +348,7 @@ const Chambres = () => {
                       <p className="font-medium text-foreground">{room.number}</p>
                     </td>
                     <td>
-                      <p className="text-foreground">{room.roomType?.name}</p>
+                      <p className="text-foreground">{roomTypeLabels[room.type]}</p>
                     </td>
                     <td>
                       <p className="text-muted-foreground">{room.floor}</p>
@@ -265,12 +356,12 @@ const Chambres = () => {
                     <td>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Users className="w-4 h-4" />
-                        <span>{room.roomType?.capacityAdults} adultes</span>
+                        <span>{room.capacity} pers.</span>
                       </div>
                     </td>
                     <td>
                       <p className="font-semibold text-foreground">
-                        {formatCurrency(room.roomType?.basePrice || 0)}
+                        {formatCurrency(room.price_per_night)}
                       </p>
                     </td>
                     <td>
@@ -282,7 +373,6 @@ const Chambres = () => {
                           variant="ghost" 
                           size="sm"
                           className="gap-1.5"
-                          onClick={() => handleOpenDetails(room)}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                           Modifier
@@ -302,7 +392,9 @@ const Chambres = () => {
           <BedDouble className="w-12 h-12 text-muted-foreground/50 mb-4" />
           <h3 className="font-medium text-foreground mb-1">Aucune chambre trouvée</h3>
           <p className="text-sm text-muted-foreground">
-            Essayez de modifier vos filtres ou votre recherche
+            {rooms.length === 0 
+              ? "Commencez par ajouter une chambre" 
+              : "Essayez de modifier vos filtres ou votre recherche"}
           </p>
         </div>
       )}

@@ -2,8 +2,9 @@ import { cn } from '@/lib/utils';
 
 type StatusType = 
   | 'confirmed' | 'pending' | 'cancelled' | 'checked_in' | 'checked_out' | 'no_show'
-  | 'available' | 'occupied' | 'maintenance' | 'out_of_service'
-  | 'owner' | 'manager' | 'receptionist';
+  | 'available' | 'occupied' | 'maintenance' | 'out_of_service' | 'cleaning'
+  | 'owner' | 'manager' | 'receptionist'
+  | 'paid' | 'partial';
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -24,11 +25,16 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
   occupied: { label: 'Occupée', className: 'badge-occupied' },
   maintenance: { label: 'Maintenance', className: 'badge-maintenance' },
   out_of_service: { label: 'Hors service', className: 'badge-cancelled' },
+  cleaning: { label: 'Nettoyage', className: 'badge-pending' },
   
   // Role badges
   owner: { label: 'Propriétaire', className: 'badge-owner' },
   manager: { label: 'Gérant', className: 'badge-manager' },
   receptionist: { label: 'Réceptionniste', className: 'badge-receptionist' },
+  
+  // Payment statuses
+  paid: { label: 'Payé', className: 'badge-confirmed' },
+  partial: { label: 'Partiel', className: 'badge-pending' },
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
