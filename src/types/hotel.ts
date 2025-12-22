@@ -23,7 +23,7 @@ export interface User {
   id: string;
   hotelId: string;
   name: string;
-  email: string;
+  username: string;
   role: UserRole;
   status: 'active' | 'inactive';
   createdAt: string;

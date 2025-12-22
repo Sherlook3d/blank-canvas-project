@@ -347,36 +347,23 @@ export const reservations: Reservation[] = reservationsData.map(res => ({
   room: rooms.find(r => r.id === res.roomId),
 }));
 
-// Users
+// Users (username + password for auth)
 export const users: User[] = [
   {
     id: 'user-001',
     hotelId: 'hotel-001',
-    name: 'Jean Dupont',
-    email: 'jean.dupont@grandhotel.com',
+    name: 'Administrateur',
+    username: '123',
     role: 'owner',
     status: 'active',
     createdAt: '2023-01-01',
   },
-  {
-    id: 'user-002',
-    hotelId: 'hotel-001',
-    name: 'Claire Martin',
-    email: 'claire.martin@grandhotel.com',
-    role: 'manager',
-    status: 'active',
-    createdAt: '2023-03-15',
-  },
-  {
-    id: 'user-003',
-    hotelId: 'hotel-001',
-    name: 'Paul Lefebvre',
-    email: 'paul.lefebvre@grandhotel.com',
-    role: 'receptionist',
-    status: 'active',
-    createdAt: '2024-01-10',
-  },
 ];
+
+// Demo passwords (username -> password)
+export const userPasswords: Record<string, string> = {
+  '123': '123',
+};
 
 // Dashboard Stats
 export const dashboardStats: DashboardStats = {
