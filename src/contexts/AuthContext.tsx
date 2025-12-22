@@ -49,19 +49,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(profileData);
       }
 
-      // Fetch role
+      // Fetch role (use maybeSingle to handle no role case)
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (roleError) {
         console.error('Error fetching role:', roleError);
-        // Default to receptionist if no role found
         setRole(null);
-      } else {
+      } else if (roleData) {
         setRole(roleData.role as UserRole);
+      } else {
+        // No role found - new user
+        setRole(null);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
