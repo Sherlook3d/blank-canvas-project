@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -13,15 +12,16 @@ import {
   Hotel
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
-  { path: '/', label: 'Tableau de bord', icon: LayoutDashboard },
-  { path: '/chambres', label: 'Chambres', icon: BedDouble },
-  { path: '/reservations', label: 'Réservations', icon: CalendarCheck },
-  { path: '/clients', label: 'Clients', icon: Users },
-  { path: '/utilisateurs', label: 'Utilisateurs', icon: UserCog },
-  { path: '/statistiques', label: 'Statistiques', icon: BarChart3 },
-  { path: '/parametres', label: 'Paramètres', icon: Settings },
+  { path: '/', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['owner', 'manager', 'receptionist'] },
+  { path: '/chambres', label: 'Chambres', icon: BedDouble, roles: ['owner', 'manager', 'receptionist'] },
+  { path: '/reservations', label: 'Réservations', icon: CalendarCheck, roles: ['owner', 'manager', 'receptionist'] },
+  { path: '/clients', label: 'Clients', icon: Users, roles: ['owner', 'manager', 'receptionist'] },
+  { path: '/utilisateurs', label: 'Utilisateurs', icon: UserCog, roles: ['owner', 'manager'] },
+  { path: '/statistiques', label: 'Statistiques', icon: BarChart3, roles: ['owner', 'manager'] },
+  { path: '/parametres', label: 'Paramètres', icon: Settings, roles: ['owner', 'manager'] },
 ];
 
 interface AppSidebarProps {
@@ -31,6 +31,24 @@ interface AppSidebarProps {
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
+  const { user, hasRole } = useAuth();
+
+  const visibleNavItems = navItems.filter(item => 
+    hasRole(item.roles as any[])
+  );
+
+  const initials = user?.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'U';
+
+  const roleLabels = {
+    owner: 'Propriétaire',
+    manager: 'Gérant',
+    receptionist: 'Réceptionniste',
+  };
 
   return (
     <aside 
@@ -54,7 +72,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
           
@@ -90,22 +108,24 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       </button>
 
       {/* User Section */}
-      <div className="px-3 py-4 border-t border-sidebar-border">
-        <div className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg",
-          collapsed && "justify-center"
-        )}>
-          <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-medium text-sidebar-primary">
-            JD
-          </div>
-          {!collapsed && (
-            <div className="animate-fade-in min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Jean Dupont</p>
-              <p className="text-xs text-sidebar-muted">Propriétaire</p>
+      {user && (
+        <div className="px-3 py-4 border-t border-sidebar-border">
+          <div className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg",
+            collapsed && "justify-center"
+          )}>
+            <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-medium text-sidebar-primary">
+              {initials}
             </div>
-          )}
+            {!collapsed && (
+              <div className="animate-fade-in min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+                <p className="text-xs text-sidebar-muted">{roleLabels[user.role]}</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 }
