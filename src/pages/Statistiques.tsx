@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-  Euro, 
+  Banknote, 
   TrendingUp, 
   Percent, 
   Users,
@@ -54,7 +54,7 @@ const Statistiques = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         <KpiCard
-          icon={Euro}
+          icon={Banknote}
           iconColor="yellow"
           title="Revenu annuel"
           value={formatCurrency(totalRevenue)}
@@ -93,7 +93,7 @@ const Statistiques = () => {
         <div className="gravity-card lg:col-span-2">
           <div className="mb-6">
             <h3 className="font-semibold text-foreground">Évolution des revenus</h3>
-            <p className="text-sm text-muted-foreground">Revenus mensuels en euros</p>
+            <p className="text-sm text-muted-foreground">Revenus mensuels en Ariary</p>
           </div>
           
           <div className="h-72">
