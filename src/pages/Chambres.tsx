@@ -10,16 +10,24 @@ import {
   Bath,
   LayoutGrid,
   List,
-  MoreVertical
+  MoreVertical,
+  Edit2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel } from '@/contexts/HotelContext';
+import { RoomDetailsModal } from '@/components/chambres/RoomDetailsModal';
 import { roomTypes, formatCurrency } from '@/data/mockData';
 import { cn } from '@/lib/utils';
-import { RoomStatus } from '@/types/hotel';
+import { Room, RoomStatus } from '@/types/hotel';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type ViewMode = 'grid' | 'list';
 type FilterStatus = 'all' | RoomStatus;
@@ -42,6 +50,8 @@ const Chambres = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const { rooms } = useHotel();
 
   const roomsWithTypes = rooms.map(room => ({
@@ -66,6 +76,11 @@ const Chambres = () => {
     maintenance: rooms.filter(r => r.status === 'maintenance').length,
   };
 
+  const handleOpenDetails = (room: Room) => {
+    setSelectedRoom(room);
+    setShowDetails(true);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader 
@@ -77,6 +92,12 @@ const Chambres = () => {
             Ajouter une chambre
           </Button>
         }
+      />
+
+      <RoomDetailsModal 
+        open={showDetails} 
+        onOpenChange={setShowDetails} 
+        room={selectedRoom}
       />
 
       {/* Search, Filters, and View Toggle */}
@@ -195,7 +216,11 @@ const Chambres = () => {
                   >
                     Réserver
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleOpenDetails(room)}
+                  >
                     Détails
                   </Button>
                 </div>
@@ -215,7 +240,7 @@ const Chambres = () => {
                   <th>Capacité</th>
                   <th>Prix/nuit</th>
                   <th>Statut</th>
-                  <th className="w-10"></th>
+                  <th className="w-24">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -245,13 +270,17 @@ const Chambres = () => {
                       <StatusBadge status={room.status} />
                     </td>
                     <td>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => handleOpenDetails(room)}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          Modifier
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
