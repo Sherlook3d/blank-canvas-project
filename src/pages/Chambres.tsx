@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel } from '@/contexts/HotelContext';
 import { RoomDetailsModal } from '@/components/chambres/RoomDetailsModal';
+import { AddRoomModal } from '@/components/chambres/AddRoomModal';
 import { roomTypes, formatCurrency } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { Room, RoomStatus } from '@/types/hotel';
@@ -52,6 +53,7 @@ const Chambres = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showAddRoom, setShowAddRoom] = useState(false);
   const { rooms } = useHotel();
 
   const roomsWithTypes = rooms.map(room => ({
@@ -87,12 +89,17 @@ const Chambres = () => {
         title="Chambres"
         subtitle={`${rooms.length} chambres • ${statusCounts.available} disponibles`}
         actions={
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+          <Button 
+            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+            onClick={() => setShowAddRoom(true)}
+          >
             <Plus className="w-4 h-4" />
             Ajouter une chambre
           </Button>
         }
       />
+
+      <AddRoomModal open={showAddRoom} onOpenChange={setShowAddRoom} />
 
       <RoomDetailsModal 
         open={showDetails} 
