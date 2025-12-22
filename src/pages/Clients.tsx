@@ -1,40 +1,159 @@
 import { useState } from 'react';
-import { Plus, Search, Star, Mail, Phone, Calendar, MoreVertical } from 'lucide-react';
+import { Plus, Search, Star, Mail, Phone, MoreVertical, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { guests, formatCurrency, formatDate } from '@/data/mockData';
+import { useHotel, Client } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 const Clients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVipOnly, setShowVipOnly] = useState(false);
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [newClient, setNewClient] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    vip: false,
+  });
+  const { clients, isLoading, addClient } = useHotel();
 
-  const vipCount = guests.filter(g => g.isVip).length;
+  const vipCount = clients.filter(c => c.vip).length;
 
-  const filteredGuests = guests.filter((guest) => {
+  const filteredClients = clients.filter((client) => {
     const matchesSearch = 
-      guest.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      guest.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      guest.email.toLowerCase().includes(searchQuery.toLowerCase());
+      client.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.email || '').toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesVip = !showVipOnly || guest.isVip;
+    const matchesVip = !showVipOnly || client.vip;
     
     return matchesSearch && matchesVip;
   });
+
+  const handleAddClient = async () => {
+    const result = await addClient({
+      first_name: newClient.first_name,
+      last_name: newClient.last_name,
+      email: newClient.email || null,
+      phone: newClient.phone || null,
+      address: null,
+      id_type: null,
+      id_number: null,
+      nationality: null,
+      notes: null,
+      vip: newClient.vip,
+    });
+    
+    if (result) {
+      setShowAddClient(false);
+      setNewClient({ first_name: '', last_name: '', email: '', phone: '', vip: false });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader 
         title="Fichier clients"
-        subtitle={`${guests.length} clients • ${vipCount} VIP`}
+        subtitle={`${clients.length} clients • ${vipCount} VIP`}
         actions={
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+          <Button 
+            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+            onClick={() => setShowAddClient(true)}
+          >
             <Plus className="w-4 h-4" />
             Nouveau client
           </Button>
         }
       />
+
+      {/* Add Client Dialog */}
+      <Dialog open={showAddClient} onOpenChange={setShowAddClient}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un client</DialogTitle>
+            <DialogDescription>Créer une nouvelle fiche client</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="first_name">Prénom</Label>
+                <Input
+                  id="first_name"
+                  value={newClient.first_name}
+                  onChange={(e) => setNewClient({ ...newClient, first_name: e.target.value })}
+                  placeholder="Jean"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="last_name">Nom</Label>
+                <Input
+                  id="last_name"
+                  value={newClient.last_name}
+                  onChange={(e) => setNewClient({ ...newClient, last_name: e.target.value })}
+                  placeholder="Dupont"
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newClient.email}
+                onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                placeholder="jean.dupont@email.com"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input
+                id="phone"
+                value={newClient.phone}
+                onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                placeholder="+33 6 12 34 56 78"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="vip"
+                checked={newClient.vip}
+                onChange={(e) => setNewClient({ ...newClient, vip: e.target.checked })}
+                className="rounded border-border"
+              />
+              <Label htmlFor="vip" className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-accent" />
+                Client VIP
+              </Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddClient(false)}>Annuler</Button>
+            <Button onClick={handleAddClient} disabled={!newClient.first_name || !newClient.last_name}>
+              Ajouter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Search and Filters */}
       <div className="gravity-card">
@@ -64,23 +183,25 @@ const Clients = () => {
 
       {/* Client Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
-        {filteredGuests.map((guest) => (
-          <div key={guest.id} className="client-card">
+        {filteredClients.map((client) => (
+          <div key={client.id} className="client-card">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-hotel-orange-light flex items-center justify-center text-sm font-semibold text-accent">
-                  {guest.firstName[0]}{guest.lastName[0]}
+                  {client.first_name[0]}{client.last_name[0]}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-foreground">
-                      {guest.firstName} {guest.lastName}
+                      {client.first_name} {client.last_name}
                     </h3>
-                    {guest.isVip && (
+                    {client.vip && (
                       <Star className="w-4 h-4 fill-accent text-accent" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">CLI{guest.id.slice(-3).toUpperCase()}</p>
+                  {client.nationality && (
+                    <p className="text-xs text-muted-foreground">{client.nationality}</p>
+                  )}
                 </div>
               </div>
               <Button variant="ghost" size="icon" className="text-muted-foreground">
@@ -90,41 +211,29 @@ const Clients = () => {
 
             {/* Contact Info */}
             <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="w-4 h-4" />
-                <span className="truncate">{guest.email}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="w-4 h-4" />
-                <span>{guest.phone}</span>
-              </div>
-              {guest.lastVisit && (
+              {client.email && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span>Dernière visite: {formatDate(guest.lastVisit)}</span>
+                  <Mail className="w-4 h-4" />
+                  <span className="truncate">{client.email}</span>
+                </div>
+              )}
+              {client.phone && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Phone className="w-4 h-4" />
+                  <span>{client.phone}</span>
                 </div>
               )}
             </div>
 
-            {/* Preferences */}
-            {guest.preferences && (
-              <div className="mb-4 p-2 bg-hotel-blue-light rounded-lg">
-                <p className="text-xs text-info">🏨 {guest.preferences}</p>
+            {/* Notes */}
+            {client.notes && (
+              <div className="mb-4 p-2 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">{client.notes}</p>
               </div>
             )}
 
-            {/* Stats */}
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <div className="text-center">
-                <p className="text-lg font-bold text-foreground">{guest.totalStays}</p>
-                <p className="text-xs text-muted-foreground">Séjours</p>
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-bold text-foreground">
-                  {formatCurrency(guest.totalSpent)}
-                </p>
-                <p className="text-xs text-muted-foreground">Total dépensé</p>
-              </div>
+            {/* Actions */}
+            <div className="flex items-center justify-end pt-4 border-t border-border">
               <Button variant="outline" size="sm">
                 Voir profil
               </Button>
@@ -133,14 +242,16 @@ const Clients = () => {
         ))}
       </div>
 
-      {filteredGuests.length === 0 && (
+      {filteredClients.length === 0 && (
         <div className="gravity-card flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-            <Star className="w-8 h-8 text-muted-foreground/50" />
+            <UserPlus className="w-8 h-8 text-muted-foreground/50" />
           </div>
           <h3 className="font-medium text-foreground mb-1">Aucun client trouvé</h3>
           <p className="text-sm text-muted-foreground">
-            Essayez de modifier votre recherche
+            {clients.length === 0 
+              ? "Ajoutez votre premier client" 
+              : "Essayez de modifier votre recherche"}
           </p>
         </div>
       )}
