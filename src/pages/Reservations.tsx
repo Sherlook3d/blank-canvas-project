@@ -6,9 +6,10 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel } from '@/contexts/HotelContext';
 import { ReservationForm } from '@/components/reservations/ReservationForm';
+import { RoomSelectionModal } from '@/components/reservations/RoomSelectionModal';
 import { formatCurrency, formatDate } from '@/data/mockData';
 import { cn } from '@/lib/utils';
-import { ReservationStatus } from '@/types/hotel';
+import { Reservation, ReservationStatus } from '@/types/hotel';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,8 @@ const Reservations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [showForm, setShowForm] = useState(false);
+  const [showRoomSelection, setShowRoomSelection] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const { reservations, checkIn, checkOut } = useHotel();
 
   const filteredReservations = reservations.filter((res) => {
@@ -50,8 +53,13 @@ const Reservations = () => {
   const canCheckOut = (status: ReservationStatus) => 
     status === 'checked_in';
 
-  const handleCheckIn = (reservationId: string) => {
-    checkIn(reservationId);
+  const handleCheckInClick = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setShowRoomSelection(true);
+  };
+
+  const handleCheckInConfirm = (reservationId: string, roomId: string) => {
+    checkIn(reservationId, roomId);
   };
 
   const handleCheckOut = (reservationId: string) => {
@@ -75,6 +83,12 @@ const Reservations = () => {
       />
 
       <ReservationForm open={showForm} onOpenChange={setShowForm} />
+      <RoomSelectionModal 
+        open={showRoomSelection} 
+        onOpenChange={setShowRoomSelection}
+        reservation={selectedReservation}
+        onConfirm={handleCheckInConfirm}
+      />
 
       {/* Search and Filters */}
       <div className="gravity-card">
@@ -173,7 +187,7 @@ const Reservations = () => {
                           size="sm"
                           variant="default"
                           className="gap-1.5 bg-primary hover:bg-primary/90"
-                          onClick={() => handleCheckIn(reservation.id)}
+                          onClick={() => handleCheckInClick(reservation)}
                         >
                           <LogIn className="w-3.5 h-3.5" />
                           Check-in
