@@ -8,6 +8,14 @@ import {
 } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
+interface NewRoomData {
+  number: string;
+  floor: number;
+  roomTypeId: string;
+  status: RoomStatus;
+  notes?: string;
+}
+
 interface HotelContextType {
   rooms: Room[];
   reservations: Reservation[];
@@ -16,6 +24,7 @@ interface HotelContextType {
   checkIn: (reservationId: string, roomId?: string) => boolean;
   checkOut: (reservationId: string) => boolean;
   getAvailableRooms: (roomTypeId: string) => Room[];
+  addRoom: (data: NewRoomData) => void;
 }
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
@@ -160,6 +169,21 @@ export function HotelProvider({ children }: { children: ReactNode }) {
     return true;
   }, [reservations, rooms]);
 
+  const addRoom = useCallback((data: NewRoomData) => {
+    const newRoom: Room = {
+      id: `room-${Date.now()}`,
+      hotelId: 'hotel-001',
+      roomTypeId: data.roomTypeId,
+      number: data.number,
+      floor: data.floor,
+      status: data.status,
+      notes: data.notes,
+      roomType: roomTypes.find(rt => rt.id === data.roomTypeId),
+    };
+
+    setRooms(prev => [...prev, newRoom]);
+  }, []);
+
   return (
     <HotelContext.Provider value={{ 
       rooms, 
@@ -168,7 +192,8 @@ export function HotelProvider({ children }: { children: ReactNode }) {
       updateReservationStatus,
       checkIn,
       checkOut,
-      getAvailableRooms
+      getAvailableRooms,
+      addRoom
     }}>
       {children}
     </HotelContext.Provider>
