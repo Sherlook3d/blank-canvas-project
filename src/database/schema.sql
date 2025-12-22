@@ -1,6 +1,7 @@
 -- =============================================
 -- HotelManager Database Schema
--- À exécuter dans Supabase Studio > SQL Editor
+-- À copier-coller dans Supabase Studio > SQL Editor
+-- Puis cliquer sur "Run"
 -- =============================================
 
 -- Enable necessary extensions
@@ -32,7 +33,6 @@ CREATE TABLE public.profiles (
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for profiles
 CREATE POLICY "Users can view their own profile"
   ON public.profiles FOR SELECT
   TO authenticated
@@ -58,7 +58,6 @@ CREATE TABLE public.user_roles (
 
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
--- Security definer function to check roles (prevents recursive RLS)
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -74,7 +73,6 @@ AS $$
   )
 $$;
 
--- Function to get user's role
 CREATE OR REPLACE FUNCTION public.get_user_role(_user_id UUID)
 RETURNS app_role
 LANGUAGE sql
@@ -88,7 +86,6 @@ AS $$
   LIMIT 1
 $$;
 
--- RLS Policies for user_roles
 CREATE POLICY "Users can view their own roles"
   ON public.user_roles FOR SELECT
   TO authenticated
@@ -120,7 +117,6 @@ CREATE TABLE public.hotels (
 
 ALTER TABLE public.hotels ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for hotels
 CREATE POLICY "Hotel users can view their hotel"
   ON public.hotels FOR SELECT
   TO authenticated
