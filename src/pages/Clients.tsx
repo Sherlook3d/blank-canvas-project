@@ -253,14 +253,6 @@ const Clients = () => {
                     )}
                   </div>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={() => handleViewProfile(client)}
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
               </div>
 
               {/* Contact Info - Only phone */}
