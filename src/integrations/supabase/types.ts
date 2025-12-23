@@ -214,6 +214,44 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          can_access: boolean
+          created_at: string
+          hotel_id: string
+          id: string
+          page_key: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          can_access?: boolean
+          created_at?: string
+          hotel_id: string
+          id?: string
+          page_key: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          can_access?: boolean
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          page_key?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           amenities: string[] | null

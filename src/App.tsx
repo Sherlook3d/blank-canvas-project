@@ -37,27 +37,38 @@ const App = () => (
                   <AppLayout />
                 </ProtectedRoute>
               }>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/chambres" element={<Chambres />} />
-                <Route path="/reservations" element={<Reservations />} />
-                <Route path="/clients" element={<Clients />} />
-                
-                {/* Manager & Owner only */}
+                <Route path="/" element={
+                  <ProtectedRoute pageKey="dashboard">
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chambres" element={
+                  <ProtectedRoute pageKey="chambres">
+                    <Chambres />
+                  </ProtectedRoute>
+                } />
+                <Route path="/reservations" element={
+                  <ProtectedRoute pageKey="reservations">
+                    <Reservations />
+                  </ProtectedRoute>
+                } />
+                <Route path="/clients" element={
+                  <ProtectedRoute pageKey="clients">
+                    <Clients />
+                  </ProtectedRoute>
+                } />
                 <Route path="/statistiques" element={
-                  <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                  <ProtectedRoute pageKey="statistiques">
                     <Statistiques />
                   </ProtectedRoute>
                 } />
-                
-                {/* Owner only */}
                 <Route path="/utilisateurs" element={
-                  <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                  <ProtectedRoute pageKey="utilisateurs">
                     <Utilisateurs />
                   </ProtectedRoute>
                 } />
-                
                 <Route path="/parametres" element={
-                  <ProtectedRoute allowedRoles={['owner', 'manager']}>
+                  <ProtectedRoute pageKey="parametres">
                     <Parametres />
                   </ProtectedRoute>
                 } />
