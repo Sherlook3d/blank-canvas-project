@@ -37,6 +37,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { RoomDetailsDialog } from '@/components/rooms/RoomDetailsDialog';
+import { NewReservationDialog } from '@/components/reservations/NewReservationDialog';
 
 type ViewMode = 'grid' | 'list';
 type FilterStatus = 'all' | RoomStatus;
@@ -79,13 +81,17 @@ const Chambres = () => {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showAddRoom, setShowAddRoom] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [showRoomDetails, setShowRoomDetails] = useState(false);
+  const [showNewReservation, setShowNewReservation] = useState(false);
+  const [roomToBook, setRoomToBook] = useState<Room | null>(null);
   const [newRoom, setNewRoom] = useState({
     number: '',
     floor: 1,
     type: 'double' as RoomType,
     status: 'available' as RoomStatus,
   });
-  const { rooms, reservations, isLoading, addRoom } = useHotel();
+  const { rooms, reservations, isLoading, addRoom, refreshData } = useHotel();
 
   // Get current occupant for a room
   const getOccupant = (roomId: string): { client: Client; reservation: Reservation } | null => {
@@ -133,6 +139,23 @@ const Chambres = () => {
     }
   };
 
+  const handleViewDetails = (room: Room) => {
+    setSelectedRoom(room);
+    setShowRoomDetails(true);
+  };
+
+  const handleRoomDetailsClose = (open: boolean) => {
+    setShowRoomDetails(open);
+    if (!open) {
+      refreshData();
+    }
+  };
+
+  const handleBookRoom = (room: Room) => {
+    setRoomToBook(room);
+    setShowNewReservation(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -155,6 +178,19 @@ const Chambres = () => {
             Ajouter une chambre
           </Button>
         }
+      />
+
+      {/* Room Details Dialog */}
+      <RoomDetailsDialog
+        room={selectedRoom}
+        open={showRoomDetails}
+        onOpenChange={handleRoomDetailsClose}
+      />
+
+      {/* New Reservation Dialog */}
+      <NewReservationDialog
+        open={showNewReservation}
+        onOpenChange={setShowNewReservation}
       />
 
       {/* Add Room Dialog */}
@@ -358,10 +394,11 @@ const Chambres = () => {
                           : "bg-muted text-muted-foreground cursor-not-allowed"
                       )}
                       disabled={room.status !== 'available'}
+                      onClick={() => handleBookRoom(room)}
                     >
                       Réserver
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleViewDetails(room)}>
                       Détails
                     </Button>
                   </div>
@@ -445,6 +482,7 @@ const Chambres = () => {
                             variant="ghost" 
                             size="sm"
                             className="gap-1.5"
+                            onClick={() => handleViewDetails(room)}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                             Modifier
@@ -462,11 +500,13 @@ const Chambres = () => {
 
       {filteredRooms.length === 0 && (
         <div className="gravity-card flex flex-col items-center justify-center py-12 text-center">
-          <BedDouble className="w-12 h-12 text-muted-foreground/50 mb-4" />
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <BedDouble className="w-8 h-8 text-muted-foreground/50" />
+          </div>
           <h3 className="font-medium text-foreground mb-1">Aucune chambre trouvée</h3>
           <p className="text-sm text-muted-foreground">
             {rooms.length === 0 
-              ? "Commencez par ajouter une chambre" 
+              ? "Ajoutez votre première chambre" 
               : "Essayez de modifier vos filtres ou votre recherche"}
           </p>
         </div>

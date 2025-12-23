@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { useHotel, ReservationStatus, RoomType } from '@/contexts/HotelContext';
+import { useHotel, ReservationStatus, RoomType, Reservation } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { NewReservationDialog } from '@/components/reservations/NewReservationDialog';
 import { ReservationsCalendar } from '@/components/reservations/ReservationsCalendar';
+import { ReservationDetailsDialog } from '@/components/reservations/ReservationDetailsDialog';
 
 type FilterStatus = 'all' | ReservationStatus;
 type ViewMode = 'list' | 'calendar';
@@ -52,7 +53,9 @@ const Reservations = () => {
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
-  const { reservations, checkIn, checkOut, isLoading } = useHotel();
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [showReservationDetails, setShowReservationDetails] = useState(false);
+  const { reservations, checkIn, checkOut, isLoading, refreshData, updateReservation } = useHotel();
 
   const filteredReservations = reservations.filter((res) => {
     const clientName = `${res.client?.first_name || ''} ${res.client?.last_name || ''}`.toLowerCase();
@@ -81,6 +84,22 @@ const Reservations = () => {
     await checkOut(reservationId);
   };
 
+  const handleViewDetails = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setShowReservationDetails(true);
+  };
+
+  const handleReservationDetailsClose = (open: boolean) => {
+    setShowReservationDetails(open);
+    if (!open) {
+      refreshData();
+    }
+  };
+
+  const handleCancelReservation = async (reservationId: string) => {
+    await updateReservation(reservationId, { status: 'cancelled' });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -94,6 +113,12 @@ const Reservations = () => {
       <NewReservationDialog 
         open={isNewReservationOpen} 
         onOpenChange={setIsNewReservationOpen} 
+      />
+
+      <ReservationDetailsDialog
+        reservation={selectedReservation}
+        open={showReservationDetails}
+        onOpenChange={handleReservationDetailsClose}
       />
 
       <PageHeader 
@@ -260,9 +285,20 @@ const Reservations = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-popover">
-                            <DropdownMenuItem>Voir détails</DropdownMenuItem>
-                            <DropdownMenuItem>Modifier</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Annuler</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(reservation)}>
+                              Voir détails
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(reservation)}>
+                              Modifier
+                            </DropdownMenuItem>
+                            {reservation.status !== 'cancelled' && reservation.status !== 'checked_out' && (
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => handleCancelReservation(reservation.id)}
+                              >
+                                Annuler
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
