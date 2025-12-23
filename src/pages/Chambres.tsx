@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
   Search, 
@@ -10,13 +11,15 @@ import {
   Bath,
   LayoutGrid,
   List,
-  Edit2
+  Edit2,
+  User,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { useHotel, Room, RoomStatus, RoomType } from '@/contexts/HotelContext';
+import { useHotel, Room, RoomStatus, RoomType, Client, Reservation } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -71,6 +74,7 @@ const formatCurrency = (amount: number) => {
 };
 
 const Chambres = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -81,7 +85,18 @@ const Chambres = () => {
     type: 'double' as RoomType,
     status: 'available' as RoomStatus,
   });
-  const { rooms, isLoading, addRoom } = useHotel();
+  const { rooms, reservations, isLoading, addRoom } = useHotel();
+
+  // Get current occupant for a room
+  const getOccupant = (roomId: string): { client: Client; reservation: Reservation } | null => {
+    const activeReservation = reservations.find(
+      r => r.room_id === roomId && r.status === 'checked_in' && r.client
+    );
+    if (activeReservation && activeReservation.client) {
+      return { client: activeReservation.client, reservation: activeReservation };
+    }
+    return null;
+  };
 
   const filteredRooms = rooms.filter((room) => {
     const matchesSearch = 
@@ -261,70 +276,99 @@ const Chambres = () => {
       {/* Rooms Display */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-children">
-          {filteredRooms.map((room) => (
-            <div key={room.id} className="room-card">
-              {/* Room Image Placeholder */}
-              <div className="relative h-36 bg-muted flex items-center justify-center">
-                <BedDouble className="w-14 h-14 text-muted-foreground/40" />
-                <StatusBadge 
-                  status={room.status} 
-                  className="absolute top-3 right-3"
-                />
-                <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-foreground/80 rounded text-xs font-medium text-background">
-                  {formatCurrency(room.price_per_night)}/nuit
-                </div>
-              </div>
-              
-              {/* Room Info */}
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold text-foreground">{roomTypeLabels[room.type]} {room.number}</h4>
-                    <p className="text-sm text-muted-foreground">{roomTypeLabels[room.type]} • Étage {room.floor}</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4" />
-                    <span>{room.capacity}</span>
+          {filteredRooms.map((room) => {
+            const occupant = getOccupant(room.id);
+            
+            return (
+              <div key={room.id} className="room-card">
+                {/* Room Image Placeholder */}
+                <div className="relative h-36 bg-muted flex items-center justify-center">
+                  <BedDouble className="w-14 h-14 text-muted-foreground/40" />
+                  <StatusBadge 
+                    status={room.status} 
+                    className="absolute top-3 right-3"
+                  />
+                  <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-foreground/80 rounded text-xs font-medium text-background">
+                    {formatCurrency(room.price_per_night)}/nuit
                   </div>
                 </div>
                 
-                {/* Amenities */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {room.amenities.slice(0, 4).map((amenity) => {
-                    const Icon = amenityIcons[amenity];
-                    return (
-                      <div 
-                        key={amenity} 
-                        className="flex items-center gap-1 text-xs text-muted-foreground"
-                      >
-                        {Icon && <Icon className="w-3 h-3" />}
-                        <span>{amenity}</span>
+                {/* Room Info */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="font-semibold text-foreground">{roomTypeLabels[room.type]} {room.number}</h4>
+                      <p className="text-sm text-muted-foreground">{roomTypeLabels[room.type]} • Étage {room.floor}</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>{room.capacity}</span>
+                    </div>
+                  </div>
+
+                  {/* Occupant Info */}
+                  {room.status === 'occupied' && occupant && (
+                    <div className="mb-3 p-2.5 bg-accent/10 border border-accent/20 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                          <User className="w-4 h-4 text-accent" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {occupant.client.first_name} {occupant.client.last_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Occupant actuel</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-accent hover:text-accent hover:bg-accent/20"
+                          onClick={() => navigate(`/clients?highlight=${occupant.client.id}`)}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
-                    );
-                  })}
-                </div>
-                
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className={cn(
-                      "flex-1",
-                      room.status === 'available' 
-                        ? "bg-primary hover:bg-primary/90" 
-                        : "bg-muted text-muted-foreground cursor-not-allowed"
-                    )}
-                    disabled={room.status !== 'available'}
-                  >
-                    Réserver
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Détails
-                  </Button>
+                    </div>
+                  )}
+                  
+                  {/* Amenities */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {room.amenities.slice(0, 4).map((amenity) => {
+                      const Icon = amenityIcons[amenity];
+                      return (
+                        <div 
+                          key={amenity} 
+                          className="flex items-center gap-1 text-xs text-muted-foreground"
+                        >
+                          {Icon && <Icon className="w-3 h-3" />}
+                          <span>{amenity}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      className={cn(
+                        "flex-1",
+                        room.status === 'available' 
+                          ? "bg-primary hover:bg-primary/90" 
+                          : "bg-muted text-muted-foreground cursor-not-allowed"
+                      )}
+                      disabled={room.status !== 'available'}
+                    >
+                      Réserver
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Détails
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="gravity-card p-0 overflow-hidden">
@@ -338,49 +382,78 @@ const Chambres = () => {
                   <th>Capacité</th>
                   <th>Prix/nuit</th>
                   <th>Statut</th>
+                  <th>Occupant</th>
                   <th className="w-24">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredRooms.map((room) => (
-                  <tr key={room.id} className="group">
-                    <td>
-                      <p className="font-medium text-foreground">{room.number}</p>
-                    </td>
-                    <td>
-                      <p className="text-foreground">{roomTypeLabels[room.type]}</p>
-                    </td>
-                    <td>
-                      <p className="text-muted-foreground">{room.floor}</p>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>{room.capacity} pers.</span>
-                      </div>
-                    </td>
-                    <td>
-                      <p className="font-semibold text-foreground">
-                        {formatCurrency(room.price_per_night)}
-                      </p>
-                    </td>
-                    <td>
-                      <StatusBadge status={room.status} />
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="gap-1.5"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                          Modifier
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filteredRooms.map((room) => {
+                  const occupant = getOccupant(room.id);
+                  
+                  return (
+                    <tr key={room.id} className="group">
+                      <td>
+                        <p className="font-medium text-foreground">{room.number}</p>
+                      </td>
+                      <td>
+                        <p className="text-foreground">{roomTypeLabels[room.type]}</p>
+                      </td>
+                      <td>
+                        <p className="text-muted-foreground">{room.floor}</p>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>{room.capacity} pers.</span>
+                        </div>
+                      </td>
+                      <td>
+                        <p className="font-semibold text-foreground">
+                          {formatCurrency(room.price_per_night)}
+                        </p>
+                      </td>
+                      <td>
+                        <StatusBadge status={room.status} />
+                      </td>
+                      <td>
+                        {room.status === 'occupied' && occupant ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center">
+                              <User className="w-3.5 h-3.5 text-accent" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {occupant.client.first_name} {occupant.client.last_name}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-accent hover:text-accent hover:bg-accent/20"
+                              onClick={() => navigate(`/clients?highlight=${occupant.client.id}`)}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="gap-1.5"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            Modifier
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
