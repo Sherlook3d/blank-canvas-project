@@ -248,8 +248,8 @@ const Clients = () => {
                         <Star className="w-4 h-4 fill-accent text-accent" />
                       )}
                     </div>
-                    {client.nationality && (
-                      <p className="text-xs text-muted-foreground">{client.nationality}</p>
+                    {(client as any).company && (
+                      <p className="text-xs text-muted-foreground">{(client as any).company}</p>
                     )}
                   </div>
                 </div>
@@ -300,7 +300,7 @@ const Clients = () => {
                 <tr>
                   <th>Client</th>
                   <th>Téléphone</th>
-                  <th>Nationalité</th>
+                  <th>Société</th>
                   <th>VIP</th>
                   <th className="w-32">Actions</th>
                 </tr>
@@ -327,7 +327,7 @@ const Clients = () => {
                       <p className="text-muted-foreground">{client.phone || '-'}</p>
                     </td>
                     <td>
-                      <p className="text-muted-foreground">{client.nationality || '-'}</p>
+                      <p className="text-muted-foreground">{(client as any).company || '-'}</p>
                     </td>
                     <td>
                       {client.vip ? (
