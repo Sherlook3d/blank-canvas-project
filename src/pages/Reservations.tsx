@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Plus, Search, Calendar as CalendarIcon, LogIn, LogOut, MoreVertical, List, LayoutGrid } from 'lucide-react';
+import { Plus, Search, Calendar as CalendarIcon, LogIn, LogOut, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { useHotel, Reservation, ReservationStatus, RoomType } from '@/contexts/HotelContext';
+import { useHotel, ReservationStatus, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -12,9 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { NewReservationDialog } from '@/components/reservations/NewReservationDialog';
 
 type FilterStatus = 'all' | ReservationStatus;
-type ViewMode = 'list' | 'calendar';
 
 const statusFilters: { value: FilterStatus; label: string }[] = [
   { value: 'all', label: 'Toutes' },
@@ -48,7 +48,7 @@ const calculateNights = (checkIn: string, checkOut: string) => {
 const Reservations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
   const { reservations, checkIn, checkOut, isLoading } = useHotel();
 
   const filteredReservations = reservations.filter((res) => {
@@ -88,6 +88,11 @@ const Reservations = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <NewReservationDialog 
+        open={isNewReservationOpen} 
+        onOpenChange={setIsNewReservationOpen} 
+      />
+
       <PageHeader 
         title="Réservations"
         subtitle="Gérez toutes les réservations de votre hôtel"
@@ -95,6 +100,7 @@ const Reservations = () => {
           <div className="flex items-center gap-3">
             <Button 
               className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+              onClick={() => setIsNewReservationOpen(true)}
             >
               <Plus className="w-4 h-4" />
               Nouvelle réservation
