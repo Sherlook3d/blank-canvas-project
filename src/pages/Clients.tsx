@@ -14,11 +14,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { ClientDetailsDialog } from '@/components/clients/ClientDetailsDialog';
 
 const Clients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVipOnly, setShowVipOnly] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showClientDetails, setShowClientDetails] = useState(false);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -26,7 +29,7 @@ const Clients = () => {
     phone: '',
     vip: false,
   });
-  const { clients, isLoading, addClient } = useHotel();
+  const { clients, isLoading, addClient, refreshData } = useHotel();
 
   const vipCount = clients.filter(c => c.vip).length;
 
@@ -61,6 +64,18 @@ const Clients = () => {
     }
   };
 
+  const handleViewProfile = (client: Client) => {
+    setSelectedClient(client);
+    setShowClientDetails(true);
+  };
+
+  const handleClientDetailsClose = (open: boolean) => {
+    setShowClientDetails(open);
+    if (!open) {
+      refreshData();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -83,6 +98,13 @@ const Clients = () => {
             Nouveau client
           </Button>
         }
+      />
+
+      {/* Client Details Dialog */}
+      <ClientDetailsDialog
+        client={selectedClient}
+        open={showClientDetails}
+        onOpenChange={handleClientDetailsClose}
       />
 
       {/* Add Client Dialog */}
@@ -234,7 +256,7 @@ const Clients = () => {
 
             {/* Actions */}
             <div className="flex items-center justify-end pt-4 border-t border-border">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => handleViewProfile(client)}>
                 Voir profil
               </Button>
             </div>
