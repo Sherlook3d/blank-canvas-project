@@ -1,3 +1,4 @@
+import { useEffect, useState, useMemo } from 'react';
 import { 
   BedDouble, 
   CalendarCheck, 
@@ -8,7 +9,13 @@ import {
   Wifi,
   Wind,
   Wine,
-  Bath
+  Bath,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  Clock,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -17,6 +24,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 const roomTypeLabels: Record<RoomType, string> = {
   single: 'Simple',
@@ -37,30 +45,125 @@ const formatDate = (dateStr: string) => {
 };
 
 const Dashboard = () => {
-  const { hotel, rooms, clients, reservations, isLoading } = useHotel();
+  const { hotel, rooms, clients, reservations, isLoading, refreshData } = useHotel();
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Real-time subscriptions
+  useEffect(() => {
+    const roomsChannel = supabase
+      .channel('dashboard-rooms')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rooms' },
+        () => refreshData()
+      )
+      .subscribe();
+
+    const reservationsChannel = supabase
+      .channel('dashboard-reservations')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reservations' },
+        () => refreshData()
+      )
+      .subscribe();
+
+    const clientsChannel = supabase
+      .channel('dashboard-clients')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'clients' },
+        () => refreshData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(roomsChannel);
+      supabase.removeChannel(reservationsChannel);
+      supabase.removeChannel(clientsChannel);
+    };
+  }, [refreshData]);
 
   // Calculate stats
-  const availableRooms = rooms.filter(r => r.status === 'available').length;
-  const occupiedRooms = rooms.filter(r => r.status === 'occupied').length;
-  const occupancyRate = rooms.length > 0 ? Math.round((occupiedRooms / rooms.length) * 100) : 0;
-  
-  const today = new Date().toISOString().split('T')[0];
-  const todayReservations = reservations.filter(r => 
-    r.check_in === today || r.check_out === today
-  ).length;
-  
-  const arrivals = reservations.filter(r => r.check_in === today && r.status !== 'cancelled').length;
-  const departures = reservations.filter(r => r.check_out === today && r.status === 'checked_in').length;
-  
-  const monthlyRevenue = reservations
-    .filter(r => r.status !== 'cancelled')
-    .reduce((sum, r) => sum + (r.total_price || 0), 0);
+  const stats = useMemo(() => {
+    const availableRooms = rooms.filter(r => r.status === 'available').length;
+    const occupiedRooms = rooms.filter(r => r.status === 'occupied').length;
+    const maintenanceRooms = rooms.filter(r => r.status === 'maintenance').length;
+    const cleaningRooms = rooms.filter(r => r.status === 'cleaning').length;
+    const occupancyRate = rooms.length > 0 ? Math.round((occupiedRooms / rooms.length) * 100) : 0;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const todayReservations = reservations.filter(r => 
+      r.check_in === today || r.check_out === today
+    ).length;
+    
+    const arrivals = reservations.filter(r => r.check_in === today && r.status !== 'cancelled').length;
+    const departures = reservations.filter(r => r.check_out === today && r.status === 'checked_in').length;
+    const pendingCheckIns = reservations.filter(r => r.check_in === today && (r.status === 'confirmed' || r.status === 'pending')).length;
+    
+    // Current month revenue
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const monthlyRevenue = reservations
+      .filter(r => {
+        const checkInDate = new Date(r.check_in);
+        return r.status !== 'cancelled' && 
+               checkInDate.getMonth() === currentMonth && 
+               checkInDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, r) => sum + (r.total_price || 0), 0);
 
-  const vipClients = clients.filter(c => c.vip).length;
+    // Calculate revenue by room type
+    const revenueByRoomType = reservations
+      .filter(r => r.status !== 'cancelled')
+      .reduce((acc, r) => {
+        const roomType = r.room?.type || 'unknown';
+        acc[roomType] = (acc[roomType] || 0) + (r.total_price || 0);
+        return acc;
+      }, {} as Record<string, number>);
+
+    const vipClients = clients.filter(c => c.vip).length;
+    const activeReservations = reservations.filter(r => r.status === 'checked_in').length;
+
+    // Average daily rate
+    const totalRoomRevenue = reservations
+      .filter(r => r.status !== 'cancelled' && r.total_price > 0)
+      .reduce((sum, r) => sum + r.total_price, 0);
+    const totalRoomNights = reservations
+      .filter(r => r.status !== 'cancelled' && r.total_price > 0)
+      .length;
+    const averageDailyRate = totalRoomNights > 0 ? totalRoomRevenue / totalRoomNights : 0;
+
+    return {
+      availableRooms,
+      occupiedRooms,
+      maintenanceRooms,
+      cleaningRooms,
+      occupancyRate,
+      todayReservations,
+      arrivals,
+      departures,
+      pendingCheckIns,
+      monthlyRevenue,
+      revenueByRoomType,
+      vipClients,
+      activeReservations,
+      averageDailyRate,
+      totalClients: clients.length,
+    };
+  }, [rooms, clients, reservations]);
 
   const recentReservations = reservations
     .filter(r => r.status !== 'cancelled')
-    .slice(0, 4);
+    .slice(0, 5);
 
   const featuredRooms = rooms.slice(0, 4);
 
@@ -79,10 +182,20 @@ const Dashboard = () => {
         title="Tableau de bord"
         subtitle={hotel ? `Bienvenue, voici un aperçu de ${hotel.name}` : "Bienvenue sur HotelManager"}
         actions={
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
-            <FileText className="w-4 h-4" />
-            Rapport
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-3 py-2 rounded-lg border">
+              <Clock className="w-4 h-4" />
+              <span>{currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-success bg-success/10 px-3 py-2 rounded-lg">
+              <Activity className="w-4 h-4" />
+              <span>En direct</span>
+            </div>
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+              <FileText className="w-4 h-4" />
+              Rapport
+            </Button>
+          </div>
         }
       />
 
@@ -92,23 +205,23 @@ const Dashboard = () => {
           icon={BedDouble}
           iconColor="green"
           title="Chambres disponibles"
-          value={availableRooms}
+          value={stats.availableRooms}
           subtitle={`sur ${rooms.length} chambres`}
-          change={occupancyRate > 50 ? 8 : -5}
+          change={stats.occupancyRate > 50 ? 8 : -5}
         />
         <KpiCard
           icon={CalendarCheck}
           iconColor="orange"
           title="Réservations du jour"
-          value={todayReservations}
-          subtitle={`${arrivals} arrivées, ${departures} départs`}
+          value={stats.todayReservations}
+          subtitle={`${stats.arrivals} arrivées, ${stats.departures} départs`}
           change={12}
         />
         <KpiCard
           icon={Banknote}
           iconColor="yellow"
           title="Revenus du mois"
-          value={formatCurrency(monthlyRevenue)}
+          value={formatCurrency(stats.monthlyRevenue)}
           subtitle="Ce mois"
           change={15}
         />
@@ -116,10 +229,53 @@ const Dashboard = () => {
           icon={Users}
           iconColor="orange"
           title="Clients VIP"
-          value={vipClients}
-          subtitle={`sur ${clients.length} clients`}
+          value={stats.vipClients}
+          subtitle={`sur ${stats.totalClients} clients`}
           change={5}
         />
+      </div>
+
+      {/* Live Stats Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="gravity-card flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+            <TrendingUp className="w-6 h-6 text-success" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-foreground">{stats.occupancyRate}%</p>
+            <p className="text-xs text-muted-foreground">Taux d'occupation</p>
+          </div>
+        </div>
+        
+        <div className="gravity-card flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+            <ArrowUpRight className="w-6 h-6 text-accent" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-foreground">{stats.pendingCheckIns}</p>
+            <p className="text-xs text-muted-foreground">Check-ins en attente</p>
+          </div>
+        </div>
+        
+        <div className="gravity-card flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
+            <BedDouble className="w-6 h-6 text-info" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-foreground">{stats.activeReservations}</p>
+            <p className="text-xs text-muted-foreground">Séjours en cours</p>
+          </div>
+        </div>
+        
+        <div className="gravity-card flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Banknote className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.averageDailyRate)}</p>
+            <p className="text-xs text-muted-foreground">Prix moyen/nuit</p>
+          </div>
+        </div>
       </div>
 
       {/* Stats Row */}
@@ -128,36 +284,44 @@ const Dashboard = () => {
         <div className="gravity-card">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-semibold text-foreground">Taux d'occupation</h3>
-              <p className="text-sm text-muted-foreground">Aujourd'hui</p>
+              <h3 className="font-semibold text-foreground">Statut des chambres</h3>
+              <p className="text-sm text-muted-foreground">Temps réel</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-foreground">{occupancyRate}%</p>
-              <p className="text-xs text-success">+{Math.abs(occupancyRate - 50)}% vs moyenne</p>
+              <p className="text-2xl font-bold text-foreground">{stats.occupancyRate}%</p>
+              <p className="text-xs text-success flex items-center gap-1 justify-end">
+                <TrendingUp className="w-3 h-3" />
+                Occupation
+              </p>
             </div>
           </div>
           
-          <div className="h-4 bg-muted rounded-full overflow-hidden">
+          <div className="h-4 bg-muted rounded-full overflow-hidden mb-2">
             <div 
-              className="h-full bg-primary rounded-full transition-all duration-500"
-              style={{ width: `${occupancyRate}%` }}
+              className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
+              style={{ width: `${stats.occupancyRate}%` }}
             />
           </div>
+          <p className="text-xs text-muted-foreground mb-6">
+            {stats.occupiedRooms} chambres occupées sur {rooms.length}
+          </p>
           
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <p className="text-lg font-bold text-foreground">{availableRooms}</p>
+          <div className="grid grid-cols-4 gap-3">
+            <div className="text-center p-3 bg-success/10 rounded-xl border border-success/20">
+              <p className="text-xl font-bold text-success">{stats.availableRooms}</p>
               <p className="text-xs text-muted-foreground">Disponibles</p>
             </div>
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <p className="text-lg font-bold text-foreground">{occupiedRooms}</p>
+            <div className="text-center p-3 bg-accent/10 rounded-xl border border-accent/20">
+              <p className="text-xl font-bold text-accent">{stats.occupiedRooms}</p>
               <p className="text-xs text-muted-foreground">Occupées</p>
             </div>
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <p className="text-lg font-bold text-foreground">
-                {rooms.filter(r => r.status === 'maintenance').length}
-              </p>
+            <div className="text-center p-3 bg-warning/10 rounded-xl border border-warning/20">
+              <p className="text-xl font-bold text-warning">{stats.maintenanceRooms}</p>
               <p className="text-xs text-muted-foreground">Maintenance</p>
+            </div>
+            <div className="text-center p-3 bg-info/10 rounded-xl border border-info/20">
+              <p className="text-xl font-bold text-info">{stats.cleaningRooms}</p>
+              <p className="text-xs text-muted-foreground">Nettoyage</p>
             </div>
           </div>
         </div>
@@ -165,20 +329,23 @@ const Dashboard = () => {
         {/* Recent Reservations */}
         <div className="gravity-card">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-foreground">Réservations récentes</h3>
+            <div>
+              <h3 className="font-semibold text-foreground">Réservations récentes</h3>
+              <p className="text-sm text-muted-foreground">{reservations.length} total</p>
+            </div>
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               Voir tout
             </Button>
           </div>
           
           {recentReservations.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {recentReservations.map((reservation) => (
                 <div 
                   key={reservation.id} 
-                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50"
                 >
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-medium text-white">
                     {reservation.client?.first_name?.[0]}{reservation.client?.last_name?.[0]}
                   </div>
                   
@@ -192,13 +359,12 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="text-right flex-shrink-0">
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
+                    <p className="text-sm font-medium text-foreground">
+                      {formatCurrency(reservation.total_price)}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Calendar className="w-3 h-3" />
                       <span>{formatDate(reservation.check_in)}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{formatDate(reservation.check_out)}</span>
                     </div>
                   </div>
                   
@@ -215,6 +381,25 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Revenue by Room Type */}
+      {Object.keys(stats.revenueByRoomType).length > 0 && (
+        <div className="gravity-card">
+          <h3 className="font-semibold text-foreground mb-6">Revenus par type de chambre</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Object.entries(stats.revenueByRoomType).map(([type, revenue]) => (
+              <div key={type} className="p-4 bg-muted/30 rounded-xl">
+                <p className="text-sm text-muted-foreground mb-1">
+                  {roomTypeLabels[type as RoomType] || type}
+                </p>
+                <p className="text-xl font-bold text-foreground">
+                  {formatCurrency(revenue)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Featured Rooms */}
       <div>
         <div className="flex items-center justify-between mb-6">
@@ -229,7 +414,7 @@ const Dashboard = () => {
             {featuredRooms.map((room) => (
               <div key={room.id} className="room-card">
                 {/* Room Image Placeholder */}
-                <div className="relative h-32 bg-muted flex items-center justify-center">
+                <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                   <BedDouble className="w-12 h-12 text-muted-foreground/50" />
                   <StatusBadge 
                     status={room.status} 
