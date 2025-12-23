@@ -8,7 +8,9 @@ import {
   Save,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  Users,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +25,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserManagement } from '@/components/settings/UserManagement';
+import { PermissionsManagement } from '@/components/settings/PermissionsManagement';
 
-type SettingsTab = 'general' | 'notifications' | 'security' | 'appearance' | 'billing';
+type SettingsTab = 'general' | 'users' | 'permissions' | 'notifications' | 'security' | 'appearance' | 'billing';
 
 const settingsTabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: 'general', label: 'Général', icon: Building2 },
+  { id: 'users', label: 'Utilisateurs', icon: Users },
+  { id: 'permissions', label: 'Permissions', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Sécurité', icon: Shield },
   { id: 'appearance', label: 'Apparence', icon: Palette },
@@ -128,6 +134,12 @@ const Parametres = () => {
             </div>
           </div>
         );
+
+      case 'users':
+        return <UserManagement />;
+
+      case 'permissions':
+        return <PermissionsManagement />;
 
       case 'notifications':
         return (
