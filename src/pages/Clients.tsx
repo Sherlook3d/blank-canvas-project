@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Star, Mail, Phone, MoreVertical, UserPlus } from 'lucide-react';
+import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -16,10 +16,13 @@ import {
 import { Label } from '@/components/ui/label';
 import { ClientDetailsDialog } from '@/components/clients/ClientDetailsDialog';
 
+type ViewMode = 'grid' | 'list';
+
 const Clients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVipOnly, setShowVipOnly] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
   const [newClient, setNewClient] = useState({
@@ -190,79 +193,167 @@ const Clients = () => {
             />
           </div>
           
-          <button
-            onClick={() => setShowVipOnly(!showVipOnly)}
-            className={cn(
-              'filter-pill flex items-center gap-2',
-              showVipOnly && 'filter-pill-active'
-            )}
-          >
-            <Star className={cn("w-4 h-4", showVipOnly && "fill-current")} />
-            Clients VIP
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowVipOnly(!showVipOnly)}
+              className={cn(
+                'filter-pill flex items-center gap-2',
+                showVipOnly && 'filter-pill-active'
+              )}
+            >
+              <Star className={cn("w-4 h-4", showVipOnly && "fill-current")} />
+              Clients VIP
+            </button>
+
+            <div className="flex border border-border rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={cn(
+                  "p-2 rounded transition-colors",
+                  viewMode === 'grid' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={cn(
+                  "p-2 rounded transition-colors",
+                  viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Client Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
-        {filteredClients.map((client) => (
-          <div key={client.id} className="client-card">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-hotel-orange-light flex items-center justify-center text-sm font-semibold text-accent">
-                  {client.first_name[0]}{client.last_name[0]}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-foreground">
-                      {client.first_name} {client.last_name}
-                    </h3>
-                    {client.vip && (
-                      <Star className="w-4 h-4 fill-accent text-accent" />
+      {/* Grid View */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
+          {filteredClients.map((client) => (
+            <div key={client.id} className="client-card">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-hotel-orange-light flex items-center justify-center text-sm font-semibold text-accent">
+                    {client.first_name[0]}{client.last_name[0]}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground">
+                        {client.first_name} {client.last_name}
+                      </h3>
+                      {client.vip && (
+                        <Star className="w-4 h-4 fill-accent text-accent" />
+                      )}
+                    </div>
+                    {client.nationality && (
+                      <p className="text-xs text-muted-foreground">{client.nationality}</p>
                     )}
                   </div>
-                  {client.nationality && (
-                    <p className="text-xs text-muted-foreground">{client.nationality}</p>
-                  )}
                 </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => handleViewProfile(client)}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </div>
 
-            {/* Contact Info */}
-            <div className="space-y-2 mb-4">
-              {client.email && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="w-4 h-4" />
-                  <span className="truncate">{client.email}</span>
+              {/* Contact Info - Only phone */}
+              <div className="space-y-2 mb-4">
+                {client.phone && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="w-4 h-4" />
+                    <span>{client.phone}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              {client.notes && (
+                <div className="mb-4 p-2 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground">{client.notes}</p>
                 </div>
               )}
-              {client.phone && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="w-4 h-4" />
-                  <span>{client.phone}</span>
-                </div>
-              )}
-            </div>
 
-            {/* Notes */}
-            {client.notes && (
-              <div className="mb-4 p-2 bg-muted rounded-lg">
-                <p className="text-xs text-muted-foreground">{client.notes}</p>
+              {/* Actions */}
+              <div className="flex items-center justify-end pt-4 border-t border-border">
+                <Button variant="outline" size="sm" onClick={() => handleViewProfile(client)}>
+                  Voir profil
+                </Button>
               </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center justify-end pt-4 border-t border-border">
-              <Button variant="outline" size="sm" onClick={() => handleViewProfile(client)}>
-                Voir profil
-              </Button>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        <div className="gravity-card p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="gravity-table">
+              <thead className="bg-muted/30">
+                <tr>
+                  <th>Client</th>
+                  <th>Téléphone</th>
+                  <th>Nationalité</th>
+                  <th>VIP</th>
+                  <th className="w-32">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredClients.map((client) => (
+                  <tr key={client.id} className="group">
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-hotel-orange-light flex items-center justify-center text-sm font-semibold text-accent">
+                          {client.first_name[0]}{client.last_name[0]}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {client.first_name} {client.last_name}
+                          </p>
+                          {client.notes && (
+                            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{client.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <p className="text-muted-foreground">{client.phone || '-'}</p>
+                    </td>
+                    <td>
+                      <p className="text-muted-foreground">{client.nationality || '-'}</p>
+                    </td>
+                    <td>
+                      {client.vip ? (
+                        <Star className="w-4 h-4 fill-accent text-accent" />
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </td>
+                    <td>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => handleViewProfile(client)}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Voir profil
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {filteredClients.length === 0 && (
         <div className="gravity-card flex flex-col items-center justify-center py-12 text-center">
