@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Client, useHotel } from '@/contexts/HotelContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO } from 'date-fns';
 
@@ -21,6 +22,7 @@ interface ClientHistoryDialogProps {
 
 export const ClientHistoryDialog = ({ client, open, onOpenChange }: ClientHistoryDialogProps) => {
   const { reservations, rooms } = useHotel();
+  const { formatCurrency } = useCurrency();
 
   if (!client) return null;
 
@@ -57,14 +59,6 @@ export const ClientHistoryDialog = ({ client, open, onOpenChange }: ClientHistor
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', { 
-      style: 'currency', 
-      currency: 'XOF',
-      minimumFractionDigits: 0 
-    }).format(amount);
-  };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'checked_out': return 'Terminé';
@@ -84,6 +78,7 @@ export const ClientHistoryDialog = ({ client, open, onOpenChange }: ClientHistor
       default: return status;
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

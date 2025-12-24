@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel, Room, RoomStatus, RoomType, Client, Reservation } from '@/contexts/HotelContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -58,10 +59,10 @@ const roomTypeLabels: Record<RoomType, string> = {
 };
 
 const roomTypePrices: Record<RoomType, number> = {
-  single: 80,
-  double: 120,
-  suite: 200,
-  family: 180,
+  single: 80000,
+  double: 120000,
+  suite: 200000,
+  family: 180000,
 };
 
 const amenityIcons: Record<string, React.ElementType> = {
@@ -71,12 +72,9 @@ const amenityIcons: Record<string, React.ElementType> = {
   'Baignoire': Bath,
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
-};
-
 const Chambres = () => {
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');

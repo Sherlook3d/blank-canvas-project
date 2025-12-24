@@ -28,6 +28,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useHotel, Client, Room, RoomType } from '@/contexts/HotelContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
 
 interface NewReservationDialogProps {
@@ -44,6 +45,7 @@ const roomTypeLabels: Record<RoomType, string> = {
 
 export function NewReservationDialog({ open, onOpenChange }: NewReservationDialogProps) {
   const { clients, rooms, addReservation, getAvailableRooms } = useHotel();
+  const { formatCurrency } = useCurrency();
   
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [selectedRoom, setSelectedRoom] = useState<string>('');
@@ -62,9 +64,6 @@ export function NewReservationDialog({ open, onOpenChange }: NewReservationDialo
   const nights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0;
   const totalPrice = selectedRoomData ? selectedRoomData.price_per_night * nights : 0;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
