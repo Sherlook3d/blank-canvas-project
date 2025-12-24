@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye, History, Clock, DollarSign, CalendarPlus } from 'lucide-react';
+import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye, History, Clock, DollarSign, CalendarPlus, TrendingUp, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -28,6 +28,9 @@ const Clients = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
   const [showClientHistory, setShowClientHistory] = useState(false);
+  const [minDays, setMinDays] = useState<number | null>(null);
+  const [minSpent, setMinSpent] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -47,16 +50,35 @@ const Clients = () => {
     }));
   }, [clients, reservations]);
 
-  const filteredClients = clientsWithStats.filter((client) => {
-    const matchesSearch = 
-      client.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (client.email || '').toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesVip = !showVipOnly || client.vip;
-    
-    return matchesSearch && matchesVip;
-  });
+  const filteredClients = useMemo(() => {
+    return clientsWithStats
+      .filter((client) => {
+        const matchesSearch = 
+          client.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          client.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (client.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesVip = !showVipOnly || client.vip;
+        const matchesMinDays = minDays === null || client.stats.totalDays >= minDays;
+        const matchesMinSpent = minSpent === null || client.stats.totalSpent >= minSpent;
+        
+        return matchesSearch && matchesVip && matchesMinDays && matchesMinSpent;
+      })
+      .sort((a, b) => {
+        // Sort by total spent descending when filter is active
+        if (minSpent !== null) return b.stats.totalSpent - a.stats.totalSpent;
+        // Sort by days descending when filter is active
+        if (minDays !== null) return b.stats.totalDays - a.stats.totalDays;
+        return 0;
+      });
+  }, [clientsWithStats, searchQuery, showVipOnly, minDays, minSpent]);
+
+  const hasActiveFilters = minDays !== null || minSpent !== null;
+
+  const clearFilters = () => {
+    setMinDays(null);
+    setMinSpent(null);
+  };
 
   const handleAddClient = async () => {
     const result = await addClient({
@@ -213,7 +235,7 @@ const Clients = () => {
       </Dialog>
 
       {/* Search and Filters */}
-      <div className="gravity-card">
+      <div className="gravity-card space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -235,6 +257,20 @@ const Clients = () => {
             >
               <Star className={cn("w-4 h-4", showVipOnly && "fill-current")} />
               Clients VIP
+            </button>
+
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={cn(
+                'filter-pill flex items-center gap-2',
+                (showFilters || hasActiveFilters) && 'filter-pill-active'
+              )}
+            >
+              <TrendingUp className="w-4 h-4" />
+              Meilleurs clients
+              {hasActiveFilters && (
+                <span className="ml-1 w-2 h-2 bg-accent rounded-full" />
+              )}
             </button>
 
             <div className="flex border border-border rounded-lg p-1">
@@ -259,6 +295,84 @@ const Clients = () => {
             </div>
           </div>
         </div>
+
+        {/* Advanced Filters Panel */}
+        {showFilters && (
+          <div className="pt-4 border-t border-border animate-fade-in">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Filter className="w-4 h-4" />
+                Filtres avancés
+              </div>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
+                  <X className="w-3 h-3" />
+                  Réinitialiser
+                </Button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="minDays" className="text-sm flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-primary" />
+                  Minimum de jours passés
+                </Label>
+                <div className="flex gap-2">
+                  {[5, 10, 30].map((days) => (
+                    <button
+                      key={days}
+                      onClick={() => setMinDays(minDays === days ? null : days)}
+                      className={cn(
+                        'px-3 py-1.5 text-sm rounded-lg border transition-colors',
+                        minDays === days 
+                          ? 'bg-primary text-primary-foreground border-primary' 
+                          : 'border-border hover:bg-muted'
+                      )}
+                    >
+                      {days}+ jours
+                    </button>
+                  ))}
+                  <Input
+                    type="number"
+                    placeholder="Autre..."
+                    className="w-24 h-8 text-sm"
+                    value={minDays && ![5, 10, 30].includes(minDays) ? minDays : ''}
+                    onChange={(e) => setMinDays(e.target.value ? parseInt(e.target.value) : null)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="minSpent" className="text-sm flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-accent" />
+                  Minimum dépensé (XOF)
+                </Label>
+                <div className="flex gap-2 flex-wrap">
+                  {[100000, 500000, 1000000].map((amount) => (
+                    <button
+                      key={amount}
+                      onClick={() => setMinSpent(minSpent === amount ? null : amount)}
+                      className={cn(
+                        'px-3 py-1.5 text-sm rounded-lg border transition-colors',
+                        minSpent === amount 
+                          ? 'bg-accent text-accent-foreground border-accent' 
+                          : 'border-border hover:bg-muted'
+                      )}
+                    >
+                      {amount >= 1000000 ? `${amount / 1000000}M+` : `${amount / 1000}k+`}
+                    </button>
+                  ))}
+                  <Input
+                    type="number"
+                    placeholder="Autre..."
+                    className="w-28 h-8 text-sm"
+                    value={minSpent && ![100000, 500000, 1000000].includes(minSpent) ? minSpent : ''}
+                    onChange={(e) => setMinSpent(e.target.value ? parseInt(e.target.value) : null)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Grid View */}
