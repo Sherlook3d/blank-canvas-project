@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Reservation, ReservationStatus, PaymentStatus, RoomType, useHotel } from '@/contexts/HotelContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
 interface ReservationDetailsDialogProps {
@@ -44,10 +45,6 @@ const roomTypeLabels: Record<RoomType, string> = {
   family: 'Familiale',
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
-};
-
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 };
@@ -60,6 +57,7 @@ const calculateNights = (checkIn: string, checkOut: string) => {
 
 export const ReservationDetailsDialog = ({ reservation, open, onOpenChange }: ReservationDetailsDialogProps) => {
   const { updateReservation, deleteReservation } = useHotel();
+  const { formatCurrency } = useCurrency();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);

@@ -10,7 +10,8 @@ import {
   Phone,
   MapPin,
   Users,
-  Lock
+  Lock,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,8 @@ import {
 } from "@/components/ui/select";
 import { UserManagement } from '@/components/settings/UserManagement';
 import { PermissionsManagement } from '@/components/settings/PermissionsManagement';
+import { useCurrency, CurrencyCode } from '@/contexts/CurrencyContext';
+import { toast } from '@/hooks/use-toast';
 
 type SettingsTab = 'general' | 'users' | 'permissions' | 'notifications' | 'security' | 'appearance' | 'billing';
 
@@ -43,6 +46,29 @@ const settingsTabs: { id: SettingsTab; label: string; icon: React.ElementType }[
 const Parametres = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [hotelData, setHotelData] = useState(demoHotel);
+  const { currency, setCurrency, availableCurrencies, formatCurrency } = useCurrency();
+
+  const handleCurrencyChange = (value: string) => {
+    setCurrency(value as CurrencyCode);
+    toast({
+      title: "Devise mise à jour",
+      description: `La devise a été changée en ${availableCurrencies.find(c => c.code === value)?.name}`,
+    });
+  };
+
+  const handleSaveGeneral = () => {
+    toast({
+      title: "Paramètres enregistrés",
+      description: "Les informations de l'hôtel ont été mises à jour",
+    });
+  };
+
+  const handleSaveBilling = () => {
+    toast({
+      title: "Paramètres de facturation enregistrés",
+      description: "Les paramètres de facturation ont été mis à jour",
+    });
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -127,7 +153,10 @@ const Parametres = () => {
             </div>
 
             <div className="flex justify-end pt-4">
-              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+              <Button 
+                className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+                onClick={handleSaveGeneral}
+              >
                 <Save className="w-4 h-4" />
                 Enregistrer les modifications
               </Button>
@@ -178,7 +207,9 @@ const Parametres = () => {
                     <p className="font-medium text-foreground">Authentification à deux facteurs (2FA)</p>
                     <p className="text-sm text-muted-foreground">Ajouter une couche de sécurité supplémentaire</p>
                   </div>
-                  <Button variant="outline">Activer</Button>
+                  <Button variant="outline" onClick={() => toast({ title: "2FA", description: "Configuration 2FA à venir" })}>
+                    Activer
+                  </Button>
                 </div>
               </div>
               
@@ -188,7 +219,9 @@ const Parametres = () => {
                     <p className="font-medium text-foreground">Changer le mot de passe</p>
                     <p className="text-sm text-muted-foreground">Dernière modification: il y a 3 mois</p>
                   </div>
-                  <Button variant="outline">Modifier</Button>
+                  <Button variant="outline" onClick={() => toast({ title: "Mot de passe", description: "Fonctionnalité à venir" })}>
+                    Modifier
+                  </Button>
                 </div>
               </div>
               
@@ -198,7 +231,9 @@ const Parametres = () => {
                     <p className="font-medium text-foreground">Sessions actives</p>
                     <p className="text-sm text-muted-foreground">2 appareils connectés</p>
                   </div>
-                  <Button variant="outline">Gérer</Button>
+                  <Button variant="outline" onClick={() => toast({ title: "Sessions", description: "Gestion des sessions à venir" })}>
+                    Gérer
+                  </Button>
                 </div>
               </div>
             </div>
@@ -217,7 +252,9 @@ const Parametres = () => {
                   <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center">
                     <Building2 className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <Button variant="outline">Télécharger un logo</Button>
+                  <Button variant="outline" onClick={() => toast({ title: "Logo", description: "Upload de logo à venir" })}>
+                    Télécharger un logo
+                  </Button>
                 </div>
               </div>
               
@@ -232,6 +269,7 @@ const Parametres = () => {
                         color === '#1e3a5f' ? 'border-foreground scale-110' : 'border-transparent'
                       )}
                       style={{ backgroundColor: color }}
+                      onClick={() => toast({ title: "Thème", description: "Personnalisation du thème à venir" })}
                     />
                   ))}
                 </div>
@@ -248,17 +286,24 @@ const Parametres = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Devise</label>
-                <Select defaultValue="EUR">
+                <Select value={currency} onValueChange={handleCurrencyChange}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
+                    <SelectValue placeholder="Sélectionner une devise" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                    <SelectItem value="USD">Dollar US (USD)</SelectItem>
-                    <SelectItem value="GBP">Livre Sterling (GBP)</SelectItem>
-                    <SelectItem value="MGA">Ariary (MGA)</SelectItem>
+                    {availableCurrencies.map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        <div className="flex items-center justify-between gap-3">
+                          <span>{curr.name} ({curr.code})</span>
+                          {currency === curr.code && <Check className="w-4 h-4 text-accent" />}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Exemple: {formatCurrency(150000)}
+                </p>
               </div>
               
               <div className="space-y-2">
@@ -270,6 +315,16 @@ const Parametres = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Préfixe numéro de facture</label>
               <Input defaultValue="FAC-2025-" />
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button 
+                className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+                onClick={handleSaveBilling}
+              >
+                <Save className="w-4 h-4" />
+                Enregistrer
+              </Button>
             </div>
           </div>
         );

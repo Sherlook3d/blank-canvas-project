@@ -23,7 +23,7 @@ import { KpiCard } from '@/components/ui/KpiCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/data/mockData';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const roomTypeLabels: Record<RoomType, string> = {
@@ -46,6 +46,7 @@ const formatDate = (dateStr: string) => {
 
 const Dashboard = () => {
   const { hotel, rooms, clients, reservations, isLoading, refreshData } = useHotel();
+  const { formatCurrency } = useCurrency();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every minute

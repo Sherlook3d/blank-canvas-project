@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { HotelProvider } from "@/contexts/HotelContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -24,59 +25,61 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <HotelProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Public route */}
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes */}
-              <Route element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }>
-                <Route path="/" element={
-                  <ProtectedRoute pageKey="dashboard">
-                    <Dashboard />
+          <CurrencyProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Public route */}
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected routes */}
+                <Route element={
+                  <ProtectedRoute>
+                    <AppLayout />
                   </ProtectedRoute>
-                } />
-                <Route path="/chambres" element={
-                  <ProtectedRoute pageKey="chambres">
-                    <Chambres />
-                  </ProtectedRoute>
-                } />
-                <Route path="/reservations" element={
-                  <ProtectedRoute pageKey="reservations">
-                    <Reservations />
-                  </ProtectedRoute>
-                } />
-                <Route path="/clients" element={
-                  <ProtectedRoute pageKey="clients">
-                    <Clients />
-                  </ProtectedRoute>
-                } />
-                <Route path="/statistiques" element={
-                  <ProtectedRoute pageKey="statistiques">
-                    <Statistiques />
-                  </ProtectedRoute>
-                } />
-                <Route path="/utilisateurs" element={
-                  <ProtectedRoute pageKey="utilisateurs">
-                    <Utilisateurs />
-                  </ProtectedRoute>
-                } />
-                <Route path="/parametres" element={
-                  <ProtectedRoute pageKey="parametres">
-                    <Parametres />
-                  </ProtectedRoute>
-                } />
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+                }>
+                  <Route path="/" element={
+                    <ProtectedRoute pageKey="dashboard">
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/chambres" element={
+                    <ProtectedRoute pageKey="chambres">
+                      <Chambres />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/reservations" element={
+                    <ProtectedRoute pageKey="reservations">
+                      <Reservations />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/clients" element={
+                    <ProtectedRoute pageKey="clients">
+                      <Clients />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/statistiques" element={
+                    <ProtectedRoute pageKey="statistiques">
+                      <Statistiques />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/utilisateurs" element={
+                    <ProtectedRoute pageKey="utilisateurs">
+                      <Utilisateurs />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/parametres" element={
+                    <ProtectedRoute pageKey="parametres">
+                      <Parametres />
+                    </ProtectedRoute>
+                  } />
+                </Route>
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </CurrencyProvider>
         </HotelProvider>
       </AuthProvider>
     </TooltipProvider>

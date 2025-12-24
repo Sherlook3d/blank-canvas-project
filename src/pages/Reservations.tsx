@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useHotel, ReservationStatus, RoomType, Reservation } from '@/contexts/HotelContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -34,10 +35,6 @@ const roomTypeLabels: Record<RoomType, string> = {
   family: 'Familiale',
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
-};
-
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 };
@@ -55,7 +52,8 @@ const Reservations = () => {
   const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [showReservationDetails, setShowReservationDetails] = useState(false);
-  const { reservations, checkIn, checkOut, isLoading, refreshData, updateReservation } = useHotel();
+  const { reservations, checkIn: doCheckIn, checkOut: doCheckOut, isLoading, refreshData, updateReservation } = useHotel();
+  const { formatCurrency } = useCurrency();
 
   const filteredReservations = reservations.filter((res) => {
     const clientName = `${res.client?.first_name || ''} ${res.client?.last_name || ''}`.toLowerCase();
@@ -77,11 +75,11 @@ const Reservations = () => {
     status === 'checked_in';
 
   const handleCheckIn = async (reservationId: string) => {
-    await checkIn(reservationId);
+    await doCheckIn(reservationId);
   };
 
   const handleCheckOut = async (reservationId: string) => {
-    await checkOut(reservationId);
+    await doCheckOut(reservationId);
   };
 
   const handleViewDetails = (reservation: Reservation) => {

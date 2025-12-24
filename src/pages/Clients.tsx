@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useHotel, Client } from '@/contexts/HotelContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -21,6 +22,7 @@ import { getClientStats } from '@/hooks/useClientStats';
 type ViewMode = 'grid' | 'list';
 
 const Clients = () => {
+  const { formatCurrency, currency } = useCurrency();
   const [searchQuery, setSearchQuery] = useState('');
   const [showVipOnly, setShowVipOnly] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
@@ -117,14 +119,6 @@ const Clients = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', { 
-      style: 'currency', 
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-      notation: amount >= 1000000 ? 'compact' : 'standard'
-    }).format(amount);
-  };
 
   if (isLoading) {
     return (
