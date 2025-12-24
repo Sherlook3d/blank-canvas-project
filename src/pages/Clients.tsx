@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye, History, Clock, DollarSign, CalendarPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { ClientDetailsDialog } from '@/components/clients/ClientDetailsDialog';
+import { ClientHistoryDialog } from '@/components/clients/ClientHistoryDialog';
+import { getClientStats } from '@/hooks/useClientStats';
 
 type ViewMode = 'grid' | 'list';
 
@@ -25,6 +27,7 @@ const Clients = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showClientDetails, setShowClientDetails] = useState(false);
+  const [showClientHistory, setShowClientHistory] = useState(false);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -32,11 +35,19 @@ const Clients = () => {
     phone: '',
     vip: false,
   });
-  const { clients, isLoading, addClient, refreshData } = useHotel();
+  const { clients, reservations, isLoading, addClient, refreshData } = useHotel();
 
   const vipCount = clients.filter(c => c.vip).length;
 
-  const filteredClients = clients.filter((client) => {
+  // Pre-compute stats for all clients
+  const clientsWithStats = useMemo(() => {
+    return clients.map(client => ({
+      ...client,
+      stats: getClientStats(client.id, reservations)
+    }));
+  }, [clients, reservations]);
+
+  const filteredClients = clientsWithStats.filter((client) => {
     const matchesSearch = 
       client.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -72,11 +83,25 @@ const Clients = () => {
     setShowClientDetails(true);
   };
 
+  const handleViewHistory = (client: Client) => {
+    setSelectedClient(client);
+    setShowClientHistory(true);
+  };
+
   const handleClientDetailsClose = (open: boolean) => {
     setShowClientDetails(open);
     if (!open) {
       refreshData();
     }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', { 
+      style: 'currency', 
+      currency: 'XOF',
+      minimumFractionDigits: 0,
+      notation: amount >= 1000000 ? 'compact' : 'standard'
+    }).format(amount);
   };
 
   if (isLoading) {
@@ -108,6 +133,13 @@ const Clients = () => {
         client={selectedClient}
         open={showClientDetails}
         onOpenChange={handleClientDetailsClose}
+      />
+
+      {/* Client History Dialog */}
+      <ClientHistoryDialog
+        client={selectedClient}
+        open={showClientHistory}
+        onOpenChange={setShowClientHistory}
       />
 
       {/* Add Client Dialog */}
@@ -255,25 +287,55 @@ const Clients = () => {
                 </div>
               </div>
 
-              {/* Contact Info - Only phone */}
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-lg">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{client.stats.totalDays}</p>
+                    <p className="text-xs text-muted-foreground">jours</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2 bg-accent/10 rounded-lg">
+                  <DollarSign className="w-4 h-4 text-accent" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{formatCurrency(client.stats.totalSpent)}</p>
+                    <p className="text-xs text-muted-foreground">dépensé</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Info - Clickable phone */}
               <div className="space-y-2 mb-4">
                 {client.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <a 
+                    href={`tel:${client.phone.replace(/\s/g, '')}`}
+                    className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                  >
                     <Phone className="w-4 h-4" />
-                    <span>{client.phone}</span>
-                  </div>
+                    <span className="underline">{client.phone}</span>
+                  </a>
                 )}
               </div>
 
               {/* Notes */}
               {client.notes && (
                 <div className="mb-4 p-2 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground">{client.notes}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{client.notes}</p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex items-center justify-end pt-4 border-t border-border">
+              <div className="flex items-center justify-between pt-4 border-t border-border gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleViewHistory(client)}
+                  className="gap-1.5"
+                >
+                  <History className="w-3.5 h-3.5" />
+                  Historique
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => handleViewProfile(client)}>
                   Voir profil
                 </Button>
@@ -292,9 +354,10 @@ const Clients = () => {
                 <tr>
                   <th>Client</th>
                   <th>Téléphone</th>
-                  <th>Société</th>
+                  <th>Jours passés</th>
+                  <th>Total dépensé</th>
                   <th>VIP</th>
-                  <th className="w-32">Actions</th>
+                  <th className="w-48">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -316,10 +379,26 @@ const Clients = () => {
                       </div>
                     </td>
                     <td>
-                      <p className="text-muted-foreground">{client.phone || '-'}</p>
+                      {client.phone ? (
+                        <a 
+                          href={`tel:${client.phone.replace(/\s/g, '')}`}
+                          className="text-primary hover:text-primary/80 underline transition-colors"
+                        >
+                          {client.phone}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </td>
                     <td>
-                      <p className="text-muted-foreground">{(client as any).company || '-'}</p>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-primary" />
+                        <span className="font-medium">{client.stats.totalDays}</span>
+                        <span className="text-muted-foreground text-xs">jours</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="font-medium text-accent">{formatCurrency(client.stats.totalSpent)}</span>
                     </td>
                     <td>
                       {client.vip ? (
@@ -329,15 +408,26 @@ const Clients = () => {
                       )}
                     </td>
                     <td>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="gap-1.5"
-                        onClick={() => handleViewProfile(client)}
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        Voir profil
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => handleViewHistory(client)}
+                        >
+                          <History className="w-3.5 h-3.5" />
+                          Historique
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={() => handleViewProfile(client)}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Profil
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
