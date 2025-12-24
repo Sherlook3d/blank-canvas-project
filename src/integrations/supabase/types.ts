@@ -332,6 +332,7 @@ export type Database = {
     }
     Functions: {
       get_user_hotel_id: { Args: { _user_id: string }; Returns: string }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
