@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles, pageKey }: ProtectedRouteProps) {
-  const { user, role, isLoading } = useAuth();
+  const { user, profile, role, isLoading } = useAuth();
   const location = useLocation();
   const { hasPermission, isLoading: isLoadingPermission } = usePagePermission(pageKey || '');
 
@@ -24,6 +24,11 @@ export function ProtectedRoute({ children, allowedRoles, pageKey }: ProtectedRou
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // User is logged in but has no hotel - redirect to setup
+  if (profile && !profile.hotel_id) {
+    return <Navigate to="/setup" replace />;
   }
 
   if (allowedRoles && role && !allowedRoles.includes(role)) {

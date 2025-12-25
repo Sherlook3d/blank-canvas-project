@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { HotelProvider } from "@/contexts/HotelContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { SetupRoute } from "@/components/auth/SetupRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Chambres from "./pages/Chambres";
@@ -16,6 +17,7 @@ import Utilisateurs from "./pages/Utilisateurs";
 import Statistiques from "./pages/Statistiques";
 import Parametres from "./pages/Parametres";
 import Auth from "./pages/Auth";
+import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,8 +32,13 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                {/* Public route */}
+                {/* Public routes */}
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/setup" element={
+                  <SetupRoute>
+                    <Setup />
+                  </SetupRoute>
+                } />
                 
                 {/* Protected routes */}
                 <Route element={
