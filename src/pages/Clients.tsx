@@ -3,6 +3,7 @@ import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye, History, Cl
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { DebtBadge } from '@/components/ui/DebtBadge';
 import { useHotel, Client } from '@/contexts/HotelContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
@@ -375,7 +376,7 @@ const Clients = () => {
           {filteredClients.map((client) => (
             <div key={client.id} className="client-card">
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-full bg-hotel-orange-light flex items-center justify-center text-sm font-semibold text-accent">
                     {client.first_name[0]}{client.last_name[0]}
                   </div>
@@ -387,6 +388,7 @@ const Clients = () => {
                       {client.vip && (
                         <Star className="w-4 h-4 fill-accent text-accent" />
                       )}
+                      <DebtBadge amount={client.argent_du || 0} />
                     </div>
                     {(client as any).company && (
                       <p className="text-xs text-muted-foreground">{(client as any).company}</p>
@@ -477,9 +479,12 @@ const Clients = () => {
                           {client.first_name[0]}{client.last_name[0]}
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">
-                            {client.first_name} {client.last_name}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-foreground">
+                              {client.first_name} {client.last_name}
+                            </p>
+                            <DebtBadge amount={client.argent_du || 0} />
+                          </div>
                           {client.notes && (
                             <p className="text-xs text-muted-foreground truncate max-w-[200px]">{client.notes}</p>
                           )}

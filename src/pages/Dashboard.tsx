@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { DebtBadge } from '@/components/ui/DebtBadge';
 import { useHotel, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -511,9 +512,12 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">
-                      {reservation.client?.first_name} {reservation.client?.last_name}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground truncate">
+                        {reservation.client?.first_name} {reservation.client?.last_name}
+                      </p>
+                      <DebtBadge amount={reservation.client?.argent_du || 0} />
+                    </div>
                     <p className="text-sm text-muted-foreground truncate">
                       {reservation.room?.type ? roomTypeLabels[reservation.room.type] : ''} {reservation.room?.number}
                     </p>
