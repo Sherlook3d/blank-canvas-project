@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   BedDouble, 
@@ -9,10 +9,20 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Hotel
+  Hotel,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { path: '/', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['owner', 'manager', 'receptionist'] as UserRole[] },
@@ -31,7 +41,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
-  const { profile, role, hasRole } = useAuth();
+  const navigate = useNavigate();
+  const { user, profile, role, hasRole, logout } = useAuth();
 
   // Show all items if no role (new user) or filter by role
   const visibleNavItems = navItems.filter(item => 
@@ -49,6 +60,11 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     owner: 'Propriétaire',
     manager: 'Gérant',
     receptionist: 'Réceptionniste',
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/auth');
   };
 
   return (
@@ -108,23 +124,57 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         )}
       </button>
 
-      {/* User Section */}
-      {profile && (
+      {/* User Menu Section */}
+      {profile && user && (
         <div className="px-3 py-4 border-t border-sidebar-border">
-          <div className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg",
-            collapsed && "justify-center"
-          )}>
-            <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-medium text-sidebar-primary">
-              {initials}
-            </div>
-            {!collapsed && (
-              <div className="animate-fade-in min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">{profile.name}</p>
-                {role && <p className="text-xs text-sidebar-muted">{roleLabels[role]}</p>}
-              </div>
-            )}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors",
+                  collapsed && "justify-center"
+                )}
+              >
+                <div className="w-9 h-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-medium text-sidebar-primary flex-shrink-0">
+                  {initials}
+                </div>
+                {!collapsed && (
+                  <div className="animate-fade-in min-w-0 text-left">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">{profile.name}</p>
+                    {role && <p className="text-xs text-sidebar-muted">{roleLabels[role]}</p>}
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="w-56" 
+              align={collapsed ? "center" : "start"} 
+              side="top"
+              sideOffset={8}
+            >
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-2">
+                  <p className="text-sm font-medium leading-none">{profile.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  {role && (
+                    <Badge variant="secondary" className="w-fit">
+                      {roleLabels[role]}
+                    </Badge>
+                  )}
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/parametres')}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Se déconnecter</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
     </aside>
