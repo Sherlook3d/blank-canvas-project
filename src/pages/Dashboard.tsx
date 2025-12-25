@@ -339,7 +339,7 @@ const Dashboard = () => {
               <Activity className="w-4 h-4" />
               <span>En direct</span>
             </div>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2">
+            <Button variant="gradient" className="gap-2">
               <FileText className="w-4 h-4" />
               Rapport
             </Button>

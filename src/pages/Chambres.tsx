@@ -169,7 +169,8 @@ const Chambres = () => {
         subtitle={`${rooms.length} chambres • ${statusCounts.available} disponibles`}
         actions={
           <Button 
-            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+            variant="gradient"
+            className="gap-2"
             onClick={() => setShowAddRoom(true)}
           >
             <Plus className="w-4 h-4" />
@@ -385,12 +386,8 @@ const Chambres = () => {
                   <div className="flex gap-2">
                     <Button 
                       size="sm" 
-                      className={cn(
-                        "flex-1",
-                        room.status === 'available' 
-                          ? "bg-primary hover:bg-primary/90" 
-                          : "bg-muted text-muted-foreground cursor-not-allowed"
-                      )}
+                      variant={room.status === 'available' ? "gradient" : "secondary"}
+                      className="flex-1"
                       disabled={room.status !== 'available'}
                       onClick={() => handleBookRoom(room)}
                     >
