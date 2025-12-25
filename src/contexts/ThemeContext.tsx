@@ -18,44 +18,48 @@ interface ThemeColors {
 
 export const themeConfigs: Record<ThemeType, ThemeColors> = {
   'dark-gray': {
-    background: '222 30% 14%',
-    sidebar: '220 25% 7%',
-    card: '222 25% 18%',
-    foreground: '220 14% 92%',
-    mutedForeground: '217 10% 64%',
-    accent: '244 55% 52%',
-    name: 'Gris Foncé',
-    description: 'Thème sombre moderne et élégant',
+    // Dark Blue Dashboard (image 6)
+    background: '222 41% 12%',
+    sidebar: '225 43% 8%',
+    card: '222 38% 16%',
+    foreground: '210 40% 98%',
+    mutedForeground: '215 20% 55%',
+    accent: '160 84% 39%',
+    name: 'Bleu Nuit',
+    description: 'Dashboard sombre et professionnel',
   },
   'light-gray': {
-    background: '220 14% 96%',
-    sidebar: '0 0% 100%',
-    card: '0 0% 100%',
-    foreground: '222 47% 11%',
+    // Neumorphism Light (image 8)
+    background: '220 14% 92%',
+    sidebar: '220 13% 95%',
+    card: '220 14% 96%',
+    foreground: '222 47% 20%',
     mutedForeground: '215 16% 47%',
-    accent: '217 91% 60%',
-    name: 'Gris Clair',
-    description: 'Thème clair et épuré',
+    accent: '215 25% 45%',
+    name: 'Neumorphisme',
+    description: 'Thème clair avec effet relief',
   },
   'blue': {
-    background: '222 47% 11%',
-    sidebar: '217 33% 17%',
-    card: '213 50% 23%',
-    foreground: '210 40% 98%',
-    mutedForeground: '215 25% 65%',
-    accent: '213 94% 68%',
-    name: 'Bleu',
-    description: 'Thème bleu professionnel',
+    // Dark Teal Dashboard (image 7)
+    background: '200 50% 12%',
+    sidebar: '200 60% 8%',
+    card: '200 45% 18%',
+    foreground: '180 20% 95%',
+    mutedForeground: '190 15% 60%',
+    accent: '190 80% 50%',
+    name: 'Bleu Océan',
+    description: 'Dashboard bleu-vert moderne',
   },
   'green': {
-    background: '160 84% 17%',
-    sidebar: '166 76% 9%',
-    card: '160 82% 20%',
-    foreground: '138 76% 97%',
-    mutedForeground: '142 72% 83%',
-    accent: '160 72% 51%',
-    name: 'Vert',
-    description: 'Thème vert naturel',
+    // Pink/Rose Gradient (image 5)
+    background: '320 40% 96%',
+    sidebar: '330 60% 95%',
+    card: '0 0% 100%',
+    foreground: '320 50% 20%',
+    mutedForeground: '320 20% 50%',
+    accent: '330 80% 60%',
+    name: 'Rose Doux',
+    description: 'Thème rose clair et élégant',
   },
 };
 
@@ -89,7 +93,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     root.style.setProperty('--sidebar-foreground', colors.foreground);
     
     // Set dark/light class for proper styling
-    if (themeName === 'light-gray') {
+    if (themeName === 'light-gray' || themeName === 'green') {
       root.classList.remove('dark');
     } else {
       root.classList.add('dark');
