@@ -34,7 +34,7 @@ const navItems = [
   { path: '/reservations', label: 'Réservations', icon: CalendarCheck, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'reservations' },
   { path: '/comptes', label: 'Comptes Clients', icon: Wallet, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'comptes' },
   { path: '/clients', label: 'Clients', icon: Users, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'clients' },
-  { path: '/finances', label: '💰 Finances', icon: Wallet, roles: ['owner', 'manager'] as UserRole[], helpId: 'finances' },
+  { path: '/finances', label: 'Finances', icon: Wallet, roles: ['owner', 'manager'] as UserRole[], helpId: 'finances' },
   { path: '/utilisateurs', label: 'Utilisateurs', icon: UserCog, roles: ['owner', 'manager'] as UserRole[], helpId: 'parametres' },
   { path: '/statistiques', label: 'Statistiques', icon: BarChart3, roles: ['owner', 'manager'] as UserRole[], helpId: 'statistiques' },
   { path: '/parametres', label: 'Paramètres', icon: Settings, roles: ['owner', 'manager'] as UserRole[], helpId: 'parametres' },
