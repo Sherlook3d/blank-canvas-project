@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Lock, Mail, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Building2, Lock, Mail, User, AlertCircle, CheckCircle, FlaskConical, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingTestAccount, setIsCreatingTestAccount] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { login, signup, user } = useAuth();
@@ -97,6 +99,53 @@ export default function Auth() {
     setIsLoading(false);
   };
 
+  const handleCreateTestAccount = async () => {
+    setError('');
+    setSuccess('');
+    setIsCreatingTestAccount(true);
+
+    // Generate unique test email and password
+    const timestamp = Date.now();
+    const testEmail = `test-${timestamp}@demo.hotelmanager.local`;
+    const testPassword = `Test${timestamp}!`;
+    const testName = `Utilisateur Test ${timestamp.toString().slice(-4)}`;
+
+    try {
+      // Sign up with auto-confirm (requires "Confirm email" to be disabled in Supabase)
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: testEmail,
+        password: testPassword,
+        options: {
+          data: { name: testName },
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      // If session is returned, user is auto-confirmed and logged in
+      if (data.session) {
+        toast({
+          title: 'Compte de test créé',
+          description: `Email: ${testEmail} | Mot de passe: ${testPassword}`,
+          duration: 15000,
+        });
+        navigate('/');
+      } else {
+        // Email confirmation required - show credentials for manual login
+        setSuccess(`Compte créé ! Email: ${testEmail} | Mot de passe: ${testPassword}`);
+        setLoginEmail(testEmail);
+        setLoginPassword(testPassword);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de la création du compte de test');
+    } finally {
+      setIsCreatingTestAccount(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -170,6 +219,35 @@ export default function Auth() {
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? 'Connexion...' : 'Se connecter'}
+                  </Button>
+
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Ou</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2"
+                    onClick={handleCreateTestAccount}
+                    disabled={isCreatingTestAccount || isLoading}
+                  >
+                    {isCreatingTestAccount ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Création en cours...
+                      </>
+                    ) : (
+                      <>
+                        <FlaskConical className="w-4 h-4" />
+                        Créer un compte de test
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>
