@@ -142,30 +142,29 @@ export default function Setup() {
 
     try {
       // Step 1: Create the hotel
-      const { data: newHotel, error: hotelError } = await supabase
+      // Important: we must NOT rely on returning/select here because the SELECT RLS policy
+      // depends on profile.hotel_id (which is still NULL at this moment).
+      const hotelId = crypto.randomUUID();
+
+      const { error: hotelError } = await supabase
         .from('hotels')
         .insert({
+          id: hotelId,
           name: hotelData.name.trim(),
           address: hotelData.address.trim() || null,
           phone: hotelData.phone.trim() || null,
           email: hotelData.email.trim() || null,
-        })
-        .select()
-        .single();
+        });
 
-      if (hotelError) {
-        throw new Error(hotelError.message);
-      }
+      if (hotelError) throw new Error(hotelError.message);
 
       // Step 2: Update user profile with hotel_id
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ hotel_id: newHotel.id })
+        .update({ hotel_id: hotelId })
         .eq('id', user.id);
 
-      if (profileError) {
-        throw new Error(profileError.message);
-      }
+      if (profileError) throw new Error(profileError.message);
 
       // Step 3: Create owner role for user
       const { error: roleError } = await supabase
@@ -175,15 +174,13 @@ export default function Setup() {
           role: 'owner',
         });
 
-      if (roleError) {
-        throw new Error(roleError.message);
-      }
+      if (roleError) throw new Error(roleError.message);
 
       // Step 4: Add demo data if requested
       let stats = null;
       if (addDemoData) {
         try {
-          stats = await createDemoData(newHotel.id);
+          stats = await createDemoData(hotelId);
           setDemoStats(stats);
         } catch (demoError: any) {
           console.error('Demo data error:', demoError);
@@ -193,12 +190,15 @@ export default function Setup() {
 
       // Success!
       setStep(2);
-      
+
+      const hotelName = hotelData.name.trim();
+
       toast({
         title: 'Hôtel créé avec succès !',
-        description: addDemoData && stats 
-          ? `${newHotel.name} est prêt avec ${stats.roomsCount} chambres, ${stats.clientsCount} clients et ${stats.reservationsCount} réservations.`
-          : `${newHotel.name} est prêt à être utilisé.`,
+        description:
+          addDemoData && stats
+            ? `${hotelName} est prêt avec ${stats.roomsCount} chambres, ${stats.clientsCount} clients et ${stats.reservationsCount} réservations.`
+            : `${hotelName} est prêt à être utilisé.`,
       });
 
       // Redirect after short delay
