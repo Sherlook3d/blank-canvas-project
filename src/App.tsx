@@ -18,6 +18,7 @@ import Clients from "./pages/Clients";
 import Utilisateurs from "./pages/Utilisateurs";
 import Statistiques from "./pages/Statistiques";
 import Parametres from "./pages/Parametres";
+import Finances from "./pages/Finances";
 import Auth from "./pages/Auth";
 import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
@@ -77,6 +78,11 @@ const App = () => (
                     <Route path="/statistiques" element={
                       <ProtectedRoute pageKey="statistiques">
                         <Statistiques />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/finances" element={
+                      <ProtectedRoute pageKey="finances">
+                        <Finances />
                       </ProtectedRoute>
                     } />
                     <Route path="/utilisateurs" element={
