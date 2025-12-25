@@ -214,22 +214,25 @@
                 0 0 0 1px hsl(var(--accent) / 0.1);
   }
   
-  /* Neumorphic style for light themes - auto applied */
+  /* Light theme with glass effect */
   :root:not(.dark) .gravity-card {
-    box-shadow: -6px -6px 14px rgba(255, 255, 255, 0.7), 
-                6px 6px 14px rgba(163, 177, 198, 0.25);
-    border: 1px solid hsl(var(--border) / 0.3);
+    background: hsl(var(--card));
+    backdrop-filter: blur(16px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 
+                0 8px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid hsl(var(--border) / 0.4);
   }
   
   :root:not(.dark) .gravity-card:hover {
-    box-shadow: -8px -8px 18px rgba(255, 255, 255, 0.8), 
-                8px 8px 18px rgba(163, 177, 198, 0.35);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 
+                0 12px 32px rgba(0, 0, 0, 0.1);
+    border-color: hsl(var(--accent) / 0.3);
   }
   
   /* Glass effect card (explicit class) */
   .gravity-card.glass {
-    backdrop-filter: blur(16px);
-    background: hsl(var(--card) / 0.5);
+    backdrop-filter: blur(20px);
+    background: hsl(var(--card) / 0.7);
   }
   
   /* Neumorphic card (explicit class) */
@@ -237,6 +240,7 @@
     box-shadow: -8px -8px 16px rgba(255, 255, 255, 0.8), 
                 8px 8px 16px rgba(163, 177, 198, 0.3);
     border: 1px solid hsl(var(--border) / 0.5);
+    backdrop-filter: none;
   }
 
   /* KPI Card */

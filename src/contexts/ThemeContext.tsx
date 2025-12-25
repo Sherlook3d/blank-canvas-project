@@ -152,14 +152,14 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     isDark: true,
   },
   'apple-gray': {
-    // Apple-inspired gray theme with visible cards
-    background: '220 13% 82%', // #c9cdd4 - medium gray background
-    sidebar: '220 15% 88%', // #dde0e5 - lighter sidebar
-    card: '0 0% 100%', // #ffffff - pure white cards for contrast
-    foreground: '220 15% 15%', // #232629 - very dark text
-    mutedForeground: '220 10% 40%', // #5c6370 - darker muted
-    disabledForeground: '220 10% 55%', 
-    border: '220 12% 70%', // Visible borders
+    // Apple-inspired gray theme with glass cards
+    background: '220 13% 78%', // #c2c7cf - medium gray background
+    sidebar: '220 12% 72%', // #b3b8c1 - slightly darker sidebar
+    card: '0 0% 100% / 0.7', // Semi-transparent white for glass effect
+    foreground: '220 15% 12%', // #1c1f22 - very dark text
+    mutedForeground: '220 10% 35%', // #525960 - darker muted
+    disabledForeground: '220 10% 50%', 
+    border: '220 10% 65%', // Subtle borders
     
     accent: '211 100% 50%', // Apple blue #007AFF
     accentHover: '211 100% 42%', // Darker blue on hover
@@ -168,15 +168,15 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     
     badgeAvailable: '142 70% 42%', // Apple green
     badgeOccupied: '32 95% 55%', // Apple orange
-    badgeMaintenance: '220 10% 50%', 
+    badgeMaintenance: '220 10% 45%', 
     
-    cardShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06)',
-    cardBorder: '220 12% 75%', 
-    glassEffect: false,
+    cardShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1)',
+    cardBorder: '220 10% 60%', 
+    glassEffect: true,
     neumorphism: false,
     
     name: 'Apple Gray',
-    description: 'Thème gris style Apple',
+    description: 'Thème gris style Apple avec effet verre',
     isDark: false,
   },
 };
