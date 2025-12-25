@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { HotelProvider } from "@/contexts/HotelContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SetupRoute } from "@/components/auth/SetupRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -26,68 +27,70 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <HotelProvider>
-          <CurrencyProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/setup" element={
-                  <SetupRoute>
-                    <Setup />
-                  </SetupRoute>
-                } />
-                
-                {/* Protected routes */}
-                <Route element={
-                  <ProtectedRoute>
-                    <AppLayout />
-                  </ProtectedRoute>
-                }>
-                  <Route path="/" element={
-                    <ProtectedRoute pageKey="dashboard">
-                      <Dashboard />
-                    </ProtectedRoute>
+        <ThemeProvider>
+          <HotelProvider>
+            <CurrencyProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/setup" element={
+                    <SetupRoute>
+                      <Setup />
+                    </SetupRoute>
                   } />
-                  <Route path="/chambres" element={
-                    <ProtectedRoute pageKey="chambres">
-                      <Chambres />
+                  
+                  {/* Protected routes */}
+                  <Route element={
+                    <ProtectedRoute>
+                      <AppLayout />
                     </ProtectedRoute>
-                  } />
-                  <Route path="/reservations" element={
-                    <ProtectedRoute pageKey="reservations">
-                      <Reservations />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/clients" element={
-                    <ProtectedRoute pageKey="clients">
-                      <Clients />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/statistiques" element={
-                    <ProtectedRoute pageKey="statistiques">
-                      <Statistiques />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/utilisateurs" element={
-                    <ProtectedRoute pageKey="utilisateurs">
-                      <Utilisateurs />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/parametres" element={
-                    <ProtectedRoute pageKey="parametres">
-                      <Parametres />
-                    </ProtectedRoute>
-                  } />
-                </Route>
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </CurrencyProvider>
-        </HotelProvider>
+                  }>
+                    <Route path="/" element={
+                      <ProtectedRoute pageKey="dashboard">
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/chambres" element={
+                      <ProtectedRoute pageKey="chambres">
+                        <Chambres />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/reservations" element={
+                      <ProtectedRoute pageKey="reservations">
+                        <Reservations />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/clients" element={
+                      <ProtectedRoute pageKey="clients">
+                        <Clients />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/statistiques" element={
+                      <ProtectedRoute pageKey="statistiques">
+                        <Statistiques />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/utilisateurs" element={
+                      <ProtectedRoute pageKey="utilisateurs">
+                        <Utilisateurs />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/parametres" element={
+                      <ProtectedRoute pageKey="parametres">
+                        <Parametres />
+                      </ProtectedRoute>
+                    } />
+                  </Route>
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </CurrencyProvider>
+          </HotelProvider>
+        </ThemeProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
