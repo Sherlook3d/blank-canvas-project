@@ -196,17 +196,43 @@
 
   /* Gravity Card with theme support */
   .gravity-card {
-    @apply bg-card rounded-xl border border-border/50 p-6;
+    @apply bg-card rounded-xl border border-border/50 p-6 relative;
     box-shadow: var(--card-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  /* Glass effect card (for dark themes) */
-  .gravity-card.glass {
-    backdrop-filter: blur(10px);
+  /* Glassmorphism for dark themes - auto applied */
+  .dark .gravity-card {
     background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.3);
   }
   
-  /* Neumorphic card (for light themes) */
+  .dark .gravity-card:hover {
+    border-color: hsl(var(--accent) / 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px hsl(var(--accent) / 0.1);
+  }
+  
+  /* Neumorphic style for light themes - auto applied */
+  :root:not(.dark) .gravity-card {
+    box-shadow: -6px -6px 14px rgba(255, 255, 255, 0.7), 
+                6px 6px 14px rgba(163, 177, 198, 0.25);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+  
+  :root:not(.dark) .gravity-card:hover {
+    box-shadow: -8px -8px 18px rgba(255, 255, 255, 0.8), 
+                8px 8px 18px rgba(163, 177, 198, 0.35);
+  }
+  
+  /* Glass effect card (explicit class) */
+  .gravity-card.glass {
+    backdrop-filter: blur(16px);
+    background: hsl(var(--card) / 0.5);
+  }
+  
+  /* Neumorphic card (explicit class) */
   .gravity-card.neumorphic {
     box-shadow: -8px -8px 16px rgba(255, 255, 255, 0.8), 
                 8px 8px 16px rgba(163, 177, 198, 0.3);
