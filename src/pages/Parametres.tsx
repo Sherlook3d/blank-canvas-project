@@ -30,6 +30,7 @@ import { UserManagement } from '@/components/settings/UserManagement';
 import { PermissionsManagement } from '@/components/settings/PermissionsManagement';
 import { useCurrency, CurrencyCode } from '@/contexts/CurrencyContext';
 import { toast } from '@/hooks/use-toast';
+import ThemeSelector from '@/components/settings/ThemeSelector';
 
 type SettingsTab = 'general' | 'users' | 'permissions' | 'notifications' | 'security' | 'appearance' | 'billing';
 
@@ -242,37 +243,18 @@ const Parametres = () => {
 
       case 'appearance':
         return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-foreground">Apparence</h3>
+          <div className="space-y-8">
+            <ThemeSelector />
             
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Logo de l'hôtel</label>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center">
-                    <Building2 className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <Button variant="outline" onClick={() => toast({ title: "Logo", description: "Upload de logo à venir" })}>
-                    Télécharger un logo
-                  </Button>
+            <div className="border-t border-border pt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">Logo de l'hôtel</h3>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center">
+                  <Building2 className="w-8 h-8 text-muted-foreground" />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Couleur principale</label>
-                <div className="flex gap-3">
-                  {['#1e3a5f', '#2563eb', '#059669', '#d97706', '#dc2626'].map((color) => (
-                    <button
-                      key={color}
-                      className={cn(
-                        "w-10 h-10 rounded-lg border-2 transition-all",
-                        color === '#1e3a5f' ? 'border-foreground scale-110' : 'border-transparent'
-                      )}
-                      style={{ backgroundColor: color }}
-                      onClick={() => toast({ title: "Thème", description: "Personnalisation du thème à venir" })}
-                    />
-                  ))}
-                </div>
+                <Button variant="outline" onClick={() => toast({ title: "Logo", description: "Upload de logo à venir" })}>
+                  Télécharger un logo
+                </Button>
               </div>
             </div>
           </div>
