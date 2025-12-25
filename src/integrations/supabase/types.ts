@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories_depenses: {
+        Row: {
+          actif: boolean | null
+          couleur: string | null
+          created_at: string | null
+          hotel_id: string | null
+          icon: string | null
+          id: string
+          nom: string
+          ordre: number | null
+        }
+        Insert: {
+          actif?: boolean | null
+          couleur?: string | null
+          created_at?: string | null
+          hotel_id?: string | null
+          icon?: string | null
+          id?: string
+          nom: string
+          ordre?: number | null
+        }
+        Update: {
+          actif?: boolean | null
+          couleur?: string | null
+          created_at?: string | null
+          hotel_id?: string | null
+          icon?: string | null
+          id?: string
+          nom?: string
+          ordre?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_depenses_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -158,6 +199,81 @@ export type Database = {
           },
         ]
       }
+      depenses: {
+        Row: {
+          categorie_id: string
+          created_at: string | null
+          created_by: string | null
+          date: string
+          description: string
+          fournisseur: string | null
+          hotel_id: string
+          id: string
+          justificatif_url: string | null
+          montant: number
+          moyen_paiement: string | null
+          note: string | null
+          numero_facture: string | null
+          updated_at: string | null
+          validee: boolean | null
+          validee_le: string | null
+          validee_par: string | null
+        }
+        Insert: {
+          categorie_id: string
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          description: string
+          fournisseur?: string | null
+          hotel_id: string
+          id?: string
+          justificatif_url?: string | null
+          montant: number
+          moyen_paiement?: string | null
+          note?: string | null
+          numero_facture?: string | null
+          updated_at?: string | null
+          validee?: boolean | null
+          validee_le?: string | null
+          validee_par?: string | null
+        }
+        Update: {
+          categorie_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          description?: string
+          fournisseur?: string | null
+          hotel_id?: string
+          id?: string
+          justificatif_url?: string | null
+          montant?: number
+          moyen_paiement?: string | null
+          note?: string | null
+          numero_facture?: string | null
+          updated_at?: string | null
+          validee?: boolean | null
+          validee_le?: string | null
+          validee_par?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "depenses_categorie_id_fkey"
+            columns: ["categorie_id"]
+            isOneToOne: false
+            referencedRelation: "categories_depenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "depenses_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotels: {
         Row: {
           address: string | null
@@ -225,6 +341,59 @@ export type Database = {
             columns: ["compte_id"]
             isOneToOne: false
             referencedRelation: "comptes_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mouvements_tresorerie: {
+        Row: {
+          categorie: string
+          compte: string
+          created_at: string | null
+          created_by: string | null
+          date: string
+          description: string
+          hotel_id: string
+          id: string
+          montant: number
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+        }
+        Insert: {
+          categorie: string
+          compte: string
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          description: string
+          hotel_id: string
+          id?: string
+          montant: number
+          reference_id?: string | null
+          reference_type?: string | null
+          type: string
+        }
+        Update: {
+          categorie?: string
+          compte?: string
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          description?: string
+          hotel_id?: string
+          id?: string
+          montant?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mouvements_tresorerie_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
             referencedColumns: ["id"]
           },
         ]
@@ -358,6 +527,79 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relances_impayees: {
+        Row: {
+          client_id: string
+          compte_client_id: string
+          created_at: string | null
+          created_by: string | null
+          date_relance: string
+          engagement_paiement: string | null
+          hotel_id: string
+          id: string
+          message: string | null
+          montant_du: number
+          note: string | null
+          reponse_client: string | null
+          statut: string | null
+          type_relance: string | null
+        }
+        Insert: {
+          client_id: string
+          compte_client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          date_relance?: string
+          engagement_paiement?: string | null
+          hotel_id: string
+          id?: string
+          message?: string | null
+          montant_du: number
+          note?: string | null
+          reponse_client?: string | null
+          statut?: string | null
+          type_relance?: string | null
+        }
+        Update: {
+          client_id?: string
+          compte_client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          date_relance?: string
+          engagement_paiement?: string | null
+          hotel_id?: string
+          id?: string
+          message?: string | null
+          montant_du?: number
+          note?: string | null
+          reponse_client?: string | null
+          statut?: string | null
+          type_relance?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relances_impayees_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relances_impayees_compte_client_id_fkey"
+            columns: ["compte_client_id"]
+            isOneToOne: false
+            referencedRelation: "comptes_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relances_impayees_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "hotels"
@@ -539,6 +781,50 @@ export type Database = {
           },
         ]
       }
+      soldes_tresorerie: {
+        Row: {
+          created_at: string | null
+          date: string
+          entrees_jour: number | null
+          hotel_id: string
+          id: string
+          solde_banque: number
+          solde_caisse: number
+          sorties_jour: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          entrees_jour?: number | null
+          hotel_id: string
+          id?: string
+          solde_banque?: number
+          solde_caisse?: number
+          sorties_jour?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          entrees_jour?: number | null
+          hotel_id?: string
+          id?: string
+          solde_banque?: number
+          solde_caisse?: number
+          sorties_jour?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "soldes_tresorerie_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -565,6 +851,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculer_solde_tresorerie: {
+        Args: { p_date?: string; p_hotel_id: string }
+        Returns: {
+          solde_banque: number
+          solde_caisse: number
+          solde_total: number
+        }[]
+      }
       get_user_hotel_id: { Args: { _user_id: string }; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
