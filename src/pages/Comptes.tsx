@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Eye, Plus, CreditCard, AlertTriangle, Wallet, Users, BedDouble } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -23,6 +24,7 @@ const Comptes = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showAddConsommation, setShowAddConsommation] = useState(false);
   const [showEncaisser, setShowEncaisser] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const stats = getStats();
 
@@ -93,6 +95,8 @@ const Comptes = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <HelpButton onClick={() => setShowHelp(true)} />
+      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="comptes" />
       {/* Dialogs */}
       <CompteDetailsDialog
         compte={selectedCompte}
