@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
-export type ThemeType = 'midnight-dark' | 'soft-light' | 'ocean-blue' | 'nature-green';
+export type ThemeType = 'midnight-dark' | 'soft-light' | 'ocean-blue' | 'nature-green' | 'apple-gray';
 
 interface ThemeColors {
   // Core colors
@@ -150,6 +150,34 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     name: 'Nature Green',
     description: 'Thème vert nature',
     isDark: true,
+  },
+  'apple-gray': {
+    // Apple-inspired gray theme with visible cards
+    background: '220 13% 82%', // #c9cdd4 - medium gray background
+    sidebar: '220 15% 88%', // #dde0e5 - lighter sidebar
+    card: '0 0% 100%', // #ffffff - pure white cards for contrast
+    foreground: '220 15% 15%', // #232629 - very dark text
+    mutedForeground: '220 10% 40%', // #5c6370 - darker muted
+    disabledForeground: '220 10% 55%', 
+    border: '220 12% 70%', // Visible borders
+    
+    accent: '211 100% 50%', // Apple blue #007AFF
+    accentHover: '211 100% 42%', // Darker blue on hover
+    gradientFrom: '211 100% 50%', // Apple blue
+    gradientTo: '199 100% 48%', // Lighter blue
+    
+    badgeAvailable: '142 70% 42%', // Apple green
+    badgeOccupied: '32 95% 55%', // Apple orange
+    badgeMaintenance: '220 10% 50%', 
+    
+    cardShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06)',
+    cardBorder: '220 12% 75%', 
+    glassEffect: false,
+    neumorphism: false,
+    
+    name: 'Apple Gray',
+    description: 'Thème gris style Apple',
+    isDark: false,
   },
 };
 
