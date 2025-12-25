@@ -29,15 +29,15 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     description: 'Dashboard sombre et professionnel',
   },
   'light-gray': {
-    // Neumorphism Light (image 8) - légèrement assombri
-    background: '220 14% 85%',
-    sidebar: '220 13% 88%',
-    card: '220 14% 90%',
-    foreground: '222 47% 15%',
-    mutedForeground: '215 16% 40%',
-    accent: '215 30% 40%',
+    // Apple-inspired light theme - sidebar plus sombre
+    background: '220 14% 96%',
+    sidebar: '220 15% 78%',
+    card: '0 0% 100%',
+    foreground: '222 47% 11%',
+    mutedForeground: '215 16% 42%',
+    accent: '215 100% 50%',
     name: 'Neumorphisme',
-    description: 'Thème clair avec effet relief',
+    description: 'Thème clair style Apple',
   },
   'blue': {
     // Dark Teal Dashboard (image 7)
