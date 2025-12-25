@@ -2,129 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-/* HotelManager - Gravity Design System
-   iOS-inspired hotel PMS with clean cards, subtle shadows, warm accents
+/* HotelManager - Modern Theme System
+   Professional dashboard with 4 distinct themes
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Core palette - Navy & Orange theme */
-    --background: 220 14% 92%;
-    --foreground: 222 47% 11%;
+    /* Default: Midnight Dark theme */
+    --background: 210 29% 6%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 222 38% 16%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 222 38% 16%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Primary - Deep Navy */
-    --primary: 213 56% 24%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary */
+    --primary: 0 0% 100%;
+    --primary-foreground: 210 29% 6%;
 
-    /* Secondary - Light blue-gray */
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary */
+    --secondary: 222 38% 16%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted */
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 222 38% 16%;
+    --muted-foreground: 215 20% 60%;
 
-    /* Accent - Warm Orange */
-    --accent: 38 92% 50%;
+    /* Accent - Turquoise/Cyan gradient */
+    --accent: 173 80% 40%;
     --accent-foreground: 0 0% 100%;
+    --accent-hover: 173 80% 34%;
+    
+    /* Gradient colors */
+    --gradient-from: 186 94% 41%;
+    --gradient-to: 160 84% 39%;
 
     /* Semantic colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
+    --warning: 38 95% 64%;
     --warning-foreground: 0 0% 0%;
 
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
+    /* Status badges */
+    --badge-available: 160 84% 39%;
+    --badge-occupied: 38 95% 64%;
+    --badge-maintenance: 215 16% 47%;
+
     /* UI elements */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 213 56% 24%;
+    --border: 220 17% 26%;
+    --input: 220 17% 26%;
+    --ring: 173 80% 40%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Dark Navy */
-    --sidebar-background: 213 56% 18%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 213 56% 18%;
-    --sidebar-accent: 213 50% 25%;
+    /* Sidebar */
+    --sidebar-background: 222 41% 12%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 173 80% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 173 80% 40%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 213 50% 25%;
-    --sidebar-ring: 38 92% 50%;
-    --sidebar-muted: 213 40% 60%;
+    --sidebar-border: 220 17% 26%;
+    --sidebar-ring: 173 80% 40%;
+    --sidebar-muted: 215 20% 60%;
 
-    /* Extended palette */
-    --hotel-navy: 213 56% 18%;
-    --hotel-navy-light: 213 50% 25%;
-    --hotel-orange: 38 92% 50%;
-    --hotel-orange-light: 38 92% 95%;
-    --hotel-green: 142 71% 45%;
-    --hotel-green-light: 142 71% 95%;
+    /* Card effects */
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --card-border: 222 30% 22%;
+    --glass-effect: 1;
+    --neumorphism: 0;
+
+    /* Extended palette for legacy support */
+    --hotel-navy: 222 41% 12%;
+    --hotel-navy-light: 222 30% 22%;
+    --hotel-orange: 38 95% 64%;
+    --hotel-orange-light: 38 95% 92%;
+    --hotel-green: 160 84% 39%;
+    --hotel-green-light: 160 84% 92%;
     --hotel-yellow: 45 93% 47%;
-    --hotel-yellow-light: 45 93% 95%;
+    --hotel-yellow-light: 45 93% 92%;
     --hotel-red: 0 84% 60%;
-    --hotel-red-light: 0 84% 95%;
+    --hotel-red-light: 0 84% 92%;
     --hotel-blue: 199 89% 48%;
-    --hotel-blue-light: 199 89% 95%;
+    --hotel-blue-light: 199 89% 92%;
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.07), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.04), 0 1px 2px -1px hsl(0 0% 0% / 0.04);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.15), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+    --shadow-card: var(--card-shadow);
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 210 20% 98%;
+    --background: 210 29% 6%;
+    --foreground: 0 0% 100%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 20% 98%;
+    --card: 222 38% 16%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 222 38% 16%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 210 29% 6%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 222 38% 16%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 222 38% 16%;
+    --muted-foreground: 215 20% 60%;
 
-    --accent: 38 92% 50%;
+    --accent: 173 80% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 212 27% 84%;
+    --border: 220 17% 26%;
+    --input: 220 17% 26%;
+    --ring: 173 80% 40%;
 
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 38 92% 50%;
+    --sidebar-background: 222 41% 12%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 173 80% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-accent: 222 30% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 17% 26%;
+    --sidebar-ring: 173 80% 40%;
   }
 }
 
@@ -136,7 +152,8 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -151,15 +168,49 @@
   [class*="bg-sidebar"],
   [class*="text-foreground"],
   [class*="text-muted"] {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
 @layer components {
-  /* Gravity Card */
+  /* Modern Gradient Button */
+  .btn-gradient {
+    @apply relative inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold tracking-wide;
+    background: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
+    color: white;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+  }
+  
+  .btn-gradient:active {
+    transform: translateY(0);
+  }
+
+  /* Gravity Card with theme support */
   .gravity-card {
     @apply bg-card rounded-xl border border-border/50 p-6;
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--card-shadow);
+  }
+  
+  /* Glass effect card (for dark themes) */
+  .gravity-card.glass {
+    backdrop-filter: blur(10px);
+    background: hsl(var(--card) / 0.6);
+  }
+  
+  /* Neumorphic card (for light themes) */
+  .gravity-card.neumorphic {
+    box-shadow: -8px -8px 16px rgba(255, 255, 255, 0.8), 
+                8px 8px 16px rgba(163, 177, 198, 0.3);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 
   /* KPI Card */
@@ -170,53 +221,50 @@
   .kpi-card::before {
     content: '';
     @apply absolute top-0 right-0 w-20 h-20 rounded-full opacity-10;
+    background: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
     transform: translate(30%, -30%);
   }
 
-  /* Status badges */
+  /* Status badges with theme colors */
   .badge-status {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
   }
 
-  .badge-confirmed {
-    @apply bg-hotel-green-light text-success;
+  .badge-confirmed,
+  .badge-available {
+    background: hsl(var(--badge-available) / 0.15);
+    color: hsl(var(--badge-available));
   }
 
-  .badge-pending {
-    @apply bg-hotel-yellow-light text-warning;
+  .badge-pending,
+  .badge-occupied {
+    background: hsl(var(--badge-occupied) / 0.15);
+    color: hsl(var(--badge-occupied));
   }
 
   .badge-cancelled {
-    @apply bg-hotel-red-light text-destructive;
+    @apply bg-destructive/15 text-destructive;
   }
 
   .badge-arrived {
-    @apply bg-hotel-blue-light text-info;
+    @apply bg-info/15 text-info;
   }
 
-  .badge-departed {
-    @apply bg-muted text-muted-foreground;
-  }
-
-  .badge-available {
-    @apply bg-hotel-green-light text-success;
-  }
-
-  .badge-occupied {
-    @apply bg-hotel-orange-light text-accent;
-  }
-
+  .badge-departed,
   .badge-maintenance {
-    @apply bg-hotel-yellow-light text-warning;
+    background: hsl(var(--badge-maintenance) / 0.15);
+    color: hsl(var(--badge-maintenance));
   }
 
   /* Role badges */
   .badge-owner {
-    @apply bg-hotel-orange-light text-accent border border-accent/20;
+    background: linear-gradient(135deg, hsl(var(--gradient-from) / 0.15), hsl(var(--gradient-to) / 0.15));
+    color: hsl(var(--accent));
+    @apply border border-accent/20;
   }
 
   .badge-manager {
-    @apply bg-hotel-blue-light text-info border border-info/20;
+    @apply bg-info/15 text-info border border-info/20;
   }
 
   .badge-receptionist {
@@ -231,8 +279,9 @@
   }
 
   .filter-pill-active {
-    @apply bg-primary text-primary-foreground border-primary;
-    @apply hover:bg-primary hover:text-primary-foreground;
+    background: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
+    @apply text-white border-transparent;
+    @apply hover:opacity-90;
   }
 
   /* Room card */
@@ -240,11 +289,19 @@
     @apply gravity-card p-0 overflow-hidden transition-all duration-300;
     @apply hover:shadow-lg hover:-translate-y-1;
   }
+  
+  .room-card:hover {
+    border-color: hsl(var(--accent) / 0.3);
+  }
 
   /* Client card */
   .client-card {
     @apply gravity-card transition-all duration-300;
-    @apply hover:shadow-lg hover:border-accent/30;
+    @apply hover:shadow-lg;
+  }
+  
+  .client-card:hover {
+    border-color: hsl(var(--accent) / 0.3);
   }
 
   /* Table styles */
@@ -268,11 +325,13 @@
   .nav-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium;
     @apply text-sidebar-muted transition-all duration-200;
-    @apply hover:bg-sidebar-accent hover:text-sidebar-foreground;
+    @apply hover:bg-sidebar-accent/10 hover:text-sidebar-foreground;
   }
 
   .nav-item-active {
-    @apply bg-sidebar-accent text-sidebar-primary;
+    background: linear-gradient(135deg, hsl(var(--gradient-from) / 0.15), hsl(var(--gradient-to) / 0.15));
+    color: hsl(var(--accent));
+    @apply border-l-2 border-accent;
   }
 
   /* Animations */
@@ -289,6 +348,11 @@
   @keyframes scale-in {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
+  }
+  
+  @keyframes theme-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
   }
 
   .animate-fade-in {
