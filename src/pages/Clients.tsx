@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye, History, Clock, DollarSign, CalendarPlus, TrendingUp, Filter, X } from 'lucide-react';
+import { Plus, Search, Star, Phone, UserPlus, LayoutGrid, List, Eye, History, Clock, DollarSign, CalendarPlus, TrendingUp, Filter, X, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -18,7 +18,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { ClientDetailsDialog } from '@/components/clients/ClientDetailsDialog';
 import { ClientHistoryDialog } from '@/components/clients/ClientHistoryDialog';
+import { EncaisserDialog } from '@/components/comptes/EncaisserDialog';
 import { getClientStats } from '@/hooks/useClientStats';
+import { useComptes, MethodePaiement } from '@/hooks/useComptes';
 
 type ViewMode = 'grid' | 'list';
 
@@ -34,6 +36,8 @@ const Clients = () => {
   const [minDays, setMinDays] = useState<number | null>(null);
   const [minSpent, setMinSpent] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showEncaisser, setShowEncaisser] = useState(false);
+  const [encaisserClient, setEncaisserClient] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -42,6 +46,7 @@ const Clients = () => {
     vip: false,
   });
   const { clients, reservations, isLoading, addClient, refreshData } = useHotel();
+  const { encaisserDetteClient } = useComptes();
 
   const vipCount = clients.filter(c => c.vip).length;
 
@@ -120,7 +125,31 @@ const Clients = () => {
     }
   };
 
+  const handleEncaisser = (client: Client) => {
+    setEncaisserClient(client);
+    setShowEncaisser(true);
+  };
 
+  const handleEncaisserConfirm = async (
+    montant: number,
+    methode: MethodePaiement,
+    reference?: string
+  ) => {
+    if (!encaisserClient) return false;
+    
+    const success = await encaisserDetteClient(
+      encaisserClient.id,
+      montant,
+      methode,
+      reference
+    );
+    
+    if (success) {
+      refreshData();
+    }
+    
+    return success;
+  };
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -157,6 +186,15 @@ const Clients = () => {
         client={selectedClient}
         open={showClientHistory}
         onOpenChange={setShowClientHistory}
+      />
+
+      {/* Encaisser Dialog */}
+      <EncaisserDialog
+        open={showEncaisser}
+        onOpenChange={setShowEncaisser}
+        onConfirm={handleEncaisserConfirm}
+        soldeRestant={encaisserClient?.argent_du || 0}
+        clientName={encaisserClient ? `${encaisserClient.first_name} ${encaisserClient.last_name}` : undefined}
       />
 
       {/* Add Client Dialog */}
@@ -389,6 +427,20 @@ const Clients = () => {
                         <Star className="w-4 h-4 fill-accent text-accent" />
                       )}
                       <DebtBadge amount={client.argent_du || 0} />
+                      {(client.argent_du || 0) > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs gap-1 text-success hover:text-success hover:bg-success/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEncaisser(client);
+                          }}
+                        >
+                          <Banknote className="w-3 h-3" />
+                          Encaisser
+                        </Button>
+                      )}
                     </div>
                     {(client as any).company && (
                       <p className="text-xs text-muted-foreground">{(client as any).company}</p>
@@ -484,6 +536,20 @@ const Clients = () => {
                               {client.first_name} {client.last_name}
                             </p>
                             <DebtBadge amount={client.argent_du || 0} />
+                            {(client.argent_du || 0) > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 px-1.5 text-xs gap-1 text-success hover:text-success hover:bg-success/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEncaisser(client);
+                                }}
+                              >
+                                <Banknote className="w-3 h-3" />
+                                Encaisser
+                              </Button>
+                            )}
                           </div>
                           {client.notes && (
                             <p className="text-xs text-muted-foreground truncate max-w-[200px]">{client.notes}</p>

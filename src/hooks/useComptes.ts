@@ -419,6 +419,54 @@ export const useComptes = () => {
     }
   }, []);
 
+  // Pay client debt directly (reduce argent_du)
+  const encaisserDetteClient = useCallback(async (
+    clientId: string,
+    montant: number,
+    methode: MethodePaiement,
+    reference?: string
+  ) => {
+    if (!user?.id) {
+      toast.error('Session invalide');
+      return false;
+    }
+
+    try {
+      // Get current client debt
+      const { data: client, error: fetchError } = await supabase
+        .from('clients')
+        .select('argent_du, first_name, last_name')
+        .eq('id', clientId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const currentDebt = client?.argent_du || 0;
+      const newDebt = Math.max(0, currentDebt - montant);
+
+      // Update client debt
+      const { error: updateError } = await supabase
+        .from('clients')
+        .update({ argent_du: newDebt })
+        .eq('id', clientId);
+
+      if (updateError) throw updateError;
+
+      if (newDebt <= 0) {
+        toast.success(`Dette soldée pour ${client?.first_name} ${client?.last_name} !`);
+      } else {
+        toast.success(`Paiement enregistré ! Reste: ${formatMontant(newDebt)}`);
+      }
+      
+      return true;
+
+    } catch (error: any) {
+      console.error('Error paying client debt:', error);
+      toast.error("Erreur lors de l'encaissement");
+      return false;
+    }
+  }, [user?.id]);
+
   return {
     comptes,
     comptesOuverts,
@@ -428,6 +476,7 @@ export const useComptes = () => {
     creerCompte,
     ajouterConsommation,
     encaisserPaiement,
+    encaisserDetteClient,
     getCompteDetails,
     cloturerAvecDette,
     getNotesClient,
