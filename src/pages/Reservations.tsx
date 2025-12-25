@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Search, Calendar as CalendarIcon, LogIn, LogOut, MoreVertical, List, LayoutGrid, Eye, CreditCard, CirclePlus, AlertTriangle } from 'lucide-react';
+import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -67,6 +68,7 @@ const Reservations = () => {
   const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [showReservationDetails, setShowReservationDetails] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   // Compte dialogs
   const [selectedCompteId, setSelectedCompteId] = useState<string | null>(null);
@@ -195,6 +197,8 @@ const Reservations = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <HelpButton onClick={() => setShowHelp(true)} />
+      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="reservations" />
       <NewReservationDialog 
         open={isNewReservationOpen} 
         onOpenChange={setIsNewReservationOpen} 

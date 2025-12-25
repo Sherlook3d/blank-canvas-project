@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { DebtBadge } from '@/components/ui/DebtBadge';
+import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
 import { useHotel, Client } from '@/contexts/HotelContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
@@ -38,6 +39,7 @@ const Clients = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showEncaisser, setShowEncaisser] = useState(false);
   const [encaisserClient, setEncaisserClient] = useState<Client | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -160,6 +162,8 @@ const Clients = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <HelpButton onClick={() => setShowHelp(true)} />
+      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="clients" />
       <PageHeader 
         title="Fichier clients"
         subtitle={`${clients.length} clients • ${vipCount} VIP`}

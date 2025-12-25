@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   Receipt
 } from 'lucide-react';
+import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
 import { useComptes } from '@/hooks/useComptes';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -58,6 +59,7 @@ const Dashboard = () => {
   const { getStats: getComptesStats, comptesOuverts } = useComptes();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isAddingDemoData, setIsAddingDemoData] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   const comptesStats = getComptesStats();
 
@@ -303,6 +305,8 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      <HelpButton onClick={() => setShowHelp(true)} />
+      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="dashboard" />
       {/* Empty State - Add Demo Data */}
       {hasNoData && (
         <div className="gravity-card flex flex-col items-center justify-center py-12 text-center">
