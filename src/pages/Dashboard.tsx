@@ -17,8 +17,11 @@ import {
   Clock,
   Activity,
   Database,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  Receipt
 } from 'lucide-react';
+import { useComptes } from '@/hooks/useComptes';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -51,8 +54,11 @@ const Dashboard = () => {
   const { hotel, rooms, clients, reservations, isLoading, refreshData } = useHotel();
   const { formatCurrency } = useCurrency();
   const { toast } = useToast();
+  const { getStats: getComptesStats, comptesOuverts } = useComptes();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isAddingDemoData, setIsAddingDemoData] = useState(false);
+  
+  const comptesStats = getComptesStats();
 
   const hasNoData = rooms.length === 0 && clients.length === 0 && reservations.length === 0;
 
@@ -348,7 +354,7 @@ const Dashboard = () => {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 stagger-children">
         <KpiCard
           icon={BedDouble}
           iconColor="green"
@@ -372,6 +378,13 @@ const Dashboard = () => {
           value={formatCurrency(stats.monthlyRevenue)}
           subtitle="Ce mois"
           change={15}
+        />
+        <KpiCard
+          icon={AlertTriangle}
+          iconColor="orange"
+          title="Comptes ouverts"
+          value={comptesStats.nbComptesOuverts}
+          subtitle={formatCurrency(comptesStats.totalARecevoir) + ' à recevoir'}
         />
         <KpiCard
           icon={Users}

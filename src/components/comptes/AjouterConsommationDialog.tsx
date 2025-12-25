@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LigneType, getIconType, formatMontant } from '@/hooks/useComptes';
+import { LigneType, getIconType, formatMontant, CompteClient, useComptes } from '@/hooks/useComptes';
 import { cn } from '@/lib/utils';
 import { Delete, Check } from 'lucide-react';
 
@@ -12,7 +12,9 @@ const TYPES: LigneType[] = ['Restaurant', 'Minibar', 'Blanchisserie', 'Parking',
 interface AjouterConsommationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (type: LigneType, montant: number, description?: string) => Promise<boolean>;
+  // Either provide compte or onConfirm + clientName + chambreNum
+  compte?: CompteClient | null;
+  onConfirm?: (type: LigneType, montant: number, description?: string) => Promise<boolean>;
   clientName?: string;
   chambreNum?: string;
 }
@@ -20,14 +22,20 @@ interface AjouterConsommationDialogProps {
 export function AjouterConsommationDialog({
   open,
   onOpenChange,
+  compte,
   onConfirm,
   clientName,
   chambreNum
 }: AjouterConsommationDialogProps) {
+  const { ajouterConsommation, refreshComptes } = useComptes();
   const [selectedType, setSelectedType] = useState<LigneType>('Restaurant');
   const [montant, setMontant] = useState('0');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Derive client name and room from compte if available
+  const displayClientName = clientName || (compte?.client ? `${compte.client.first_name} ${compte.client.last_name}` : undefined);
+  const displayChambreNum = chambreNum || compte?.reservation?.room?.number;
 
   const handleKeyPress = (key: string) => {
     if (key === 'C') {
@@ -51,7 +59,19 @@ export function AjouterConsommationDialog({
     if (numMontant <= 0) return;
 
     setIsSubmitting(true);
-    const success = await onConfirm(selectedType, numMontant, description || undefined);
+    
+    let success = false;
+    if (compte) {
+      // Use compte directly
+      success = await ajouterConsommation(compte.id, selectedType, numMontant, description || undefined);
+      if (success) {
+        refreshComptes();
+      }
+    } else if (onConfirm) {
+      // Use callback
+      success = await onConfirm(selectedType, numMontant, description || undefined);
+    }
+    
     setIsSubmitting(false);
 
     if (success) {
@@ -69,16 +89,25 @@ export function AjouterConsommationDialog({
     onOpenChange(false);
   };
 
+  // Reset when dialog opens
+  useEffect(() => {
+    if (open) {
+      setMontant('0');
+      setDescription('');
+      setSelectedType('Restaurant');
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             ➕ Ajouter consommation
-            {chambreNum && <span className="text-sm font-normal text-muted-foreground">• Ch. {chambreNum}</span>}
+            {displayChambreNum && <span className="text-sm font-normal text-muted-foreground">• Ch. {displayChambreNum}</span>}
           </DialogTitle>
-          {clientName && (
-            <p className="text-sm text-muted-foreground">{clientName}</p>
+          {displayClientName && (
+            <p className="text-sm text-muted-foreground">{displayClientName}</p>
           )}
         </DialogHeader>
 
