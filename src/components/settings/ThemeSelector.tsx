@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 const ThemeSelector = () => {
   const { theme, setTheme } = useTheme();
 
-  const themes: ThemeType[] = ['midnight-dark', 'soft-light', 'ocean-blue', 'nature-green'];
+  const themes: ThemeType[] = ['midnight-dark', 'soft-light', 'apple-gray', 'ocean-blue', 'nature-green'];
 
   return (
     <div className="space-y-6">
