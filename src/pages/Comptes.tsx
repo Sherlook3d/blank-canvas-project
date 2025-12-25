@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Eye, Plus, CreditCard, AlertTriangle, Wallet, Users, BedDouble } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
+import { HelpTooltip } from '@/components/help';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
@@ -24,7 +24,6 @@ const Comptes = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showAddConsommation, setShowAddConsommation] = useState(false);
   const [showEncaisser, setShowEncaisser] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
 
   const stats = getStats();
 
@@ -95,8 +94,6 @@ const Comptes = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <HelpButton onClick={() => setShowHelp(true)} />
-      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="comptes" />
       {/* Dialogs */}
       <CompteDetailsDialog
         compte={selectedCompte}
@@ -262,24 +259,30 @@ const Comptes = () => {
 
               {/* Actions */}
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 gap-1.5"
-                  onClick={() => handleAddConsommation(compte)}
-                >
-                  <Plus className="w-4 h-4" />
-                  Ajouter
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="flex-1 gap-1.5 bg-accent hover:bg-accent/90"
-                  onClick={() => handleEncaisser(compte)}
-                  disabled={compte.solde <= 0}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Encaisser
-                </Button>
+                <div className="flex-1 flex items-center gap-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 gap-1.5"
+                    onClick={() => handleAddConsommation(compte)}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Ajouter
+                  </Button>
+                  <HelpTooltip text="Ajouter une consommation au compte (minibar, restaurant, etc.)" side="bottom" />
+                </div>
+                <div className="flex-1 flex items-center gap-1">
+                  <Button 
+                    size="sm" 
+                    className="flex-1 gap-1.5 bg-accent hover:bg-accent/90"
+                    onClick={() => handleEncaisser(compte)}
+                    disabled={compte.solde <= 0}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Encaisser
+                  </Button>
+                  <HelpTooltip text="Enregistrer un paiement du client (partiel ou total)" side="bottom" />
+                </div>
                 <Button 
                   variant="outline" 
                   size="sm"

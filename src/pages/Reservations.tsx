@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Search, Calendar as CalendarIcon, LogIn, LogOut, MoreVertical, List, LayoutGrid, Eye, CreditCard, CirclePlus, AlertTriangle } from 'lucide-react';
-import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
+import { HelpTooltip } from '@/components/help';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -68,7 +68,6 @@ const Reservations = () => {
   const [isNewReservationOpen, setIsNewReservationOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [showReservationDetails, setShowReservationDetails] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   
   // Compte dialogs
   const [selectedCompteId, setSelectedCompteId] = useState<string | null>(null);
@@ -197,8 +196,6 @@ const Reservations = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <HelpButton onClick={() => setShowHelp(true)} />
-      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="reservations" />
       <NewReservationDialog 
         open={isNewReservationOpen} 
         onOpenChange={setIsNewReservationOpen} 
@@ -286,14 +283,17 @@ const Reservations = () => {
                 Calendrier
               </Button>
             </div>
-            <Button 
-              variant="gradient"
-              className="gap-2"
-              onClick={() => setIsNewReservationOpen(true)}
-            >
-              <Plus className="w-4 h-4" />
-              Nouvelle réservation
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="gradient"
+                className="gap-2"
+                onClick={() => setIsNewReservationOpen(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Nouvelle réservation
+              </Button>
+              <HelpTooltip text="Créer une nouvelle réservation pour un client" side="bottom" />
+            </div>
           </div>
         }
       />
@@ -444,26 +444,32 @@ const Reservations = () => {
                       <td>
                         <div className="flex items-center gap-2">
                           {canCheckIn(reservation.status) && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="gap-1.5 bg-primary hover:bg-primary/90"
-                              onClick={() => handleCheckIn(reservation.id)}
-                            >
-                              <LogIn className="w-3.5 h-3.5" />
-                              Check-in
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="gap-1.5 bg-primary hover:bg-primary/90"
+                                onClick={() => handleCheckIn(reservation.id)}
+                              >
+                                <LogIn className="w-3.5 h-3.5" />
+                                Check-in
+                              </Button>
+                              <HelpTooltip text="Enregistrer l'arrivée du client et créer son compte" side="left" />
+                            </div>
                           )}
                           {canCheckOut(reservation.status) && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="gap-1.5"
-                              onClick={() => handleCheckOut(reservation.id)}
-                            >
-                              <LogOut className="w-3.5 h-3.5" />
-                              Check-out
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                className="gap-1.5"
+                                onClick={() => handleCheckOut(reservation.id)}
+                              >
+                                <LogOut className="w-3.5 h-3.5" />
+                                Check-out
+                              </Button>
+                              <HelpTooltip text="Enregistrer le départ du client (vérifie le solde)" side="left" />
+                            </div>
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
