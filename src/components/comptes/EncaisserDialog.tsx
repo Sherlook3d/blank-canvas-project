@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MethodePaiement, getIconMethode, formatMontant } from '@/hooks/useComptes';
+import { MethodePaiement, getIconMethode, formatMontant, CompteClient, useComptes } from '@/hooks/useComptes';
 import { cn } from '@/lib/utils';
 import { Delete, Check } from 'lucide-react';
 
@@ -12,8 +12,10 @@ const METHODES: MethodePaiement[] = ['Espèces', 'Carte Bancaire', 'Mobile Money
 interface EncaisserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (montant: number, methode: MethodePaiement, reference?: string, remarque?: string) => Promise<boolean>;
-  soldeRestant: number;
+  // Either provide compte or onConfirm + soldeRestant + clientName + chambreNum
+  compte?: CompteClient | null;
+  onConfirm?: (montant: number, methode: MethodePaiement, reference?: string, remarque?: string) => Promise<boolean>;
+  soldeRestant?: number;
   clientName?: string;
   chambreNum?: string;
 }
@@ -21,15 +23,32 @@ interface EncaisserDialogProps {
 export function EncaisserDialog({
   open,
   onOpenChange,
+  compte,
   onConfirm,
-  soldeRestant,
+  soldeRestant: propSoldeRestant,
   clientName,
   chambreNum
 }: EncaisserDialogProps) {
+  const { encaisserPaiement, refreshComptes } = useComptes();
+  
+  // Derive values from compte if available
+  const soldeRestant = propSoldeRestant ?? compte?.solde ?? 0;
+  const displayClientName = clientName || (compte?.client ? `${compte.client.first_name} ${compte.client.last_name}` : undefined);
+  const displayChambreNum = chambreNum || compte?.reservation?.room?.number;
+  
   const [selectedMethode, setSelectedMethode] = useState<MethodePaiement>('Espèces');
   const [montant, setMontant] = useState(soldeRestant.toString());
   const [reference, setReference] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset when dialog opens or solde changes
+  useEffect(() => {
+    if (open) {
+      setMontant(soldeRestant.toString());
+      setReference('');
+      setSelectedMethode('Espèces');
+    }
+  }, [open, soldeRestant]);
 
   const handleKeyPress = (key: string) => {
     if (key === 'C') {
@@ -51,7 +70,19 @@ export function EncaisserDialog({
     if (numMontant <= 0) return;
 
     setIsSubmitting(true);
-    const success = await onConfirm(numMontant, selectedMethode, reference || undefined);
+    
+    let success = false;
+    if (compte) {
+      // Use compte directly
+      success = await encaisserPaiement(compte.id, numMontant, selectedMethode, reference || undefined);
+      if (success) {
+        refreshComptes();
+      }
+    } else if (onConfirm) {
+      // Use callback
+      success = await onConfirm(numMontant, selectedMethode, reference || undefined);
+    }
+    
     setIsSubmitting(false);
 
     if (success) {
@@ -66,11 +97,6 @@ export function EncaisserDialog({
     onOpenChange(false);
   };
 
-  // Reset montant when solde changes
-  useState(() => {
-    setMontant(soldeRestant.toString());
-  });
-
   const numMontant = parseInt(montant) || 0;
   const nouveauSolde = soldeRestant - numMontant;
 
@@ -80,10 +106,10 @@ export function EncaisserDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             💰 Encaisser paiement
-            {chambreNum && <span className="text-sm font-normal text-muted-foreground">• Ch. {chambreNum}</span>}
+            {displayChambreNum && <span className="text-sm font-normal text-muted-foreground">• Ch. {displayChambreNum}</span>}
           </DialogTitle>
-          {clientName && (
-            <p className="text-sm text-muted-foreground">{clientName}</p>
+          {displayClientName && (
+            <p className="text-sm text-muted-foreground">{displayClientName}</p>
           )}
         </DialogHeader>
 

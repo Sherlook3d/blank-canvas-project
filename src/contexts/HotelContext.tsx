@@ -43,6 +43,9 @@ export interface Client {
   nationality: string | null;
   notes: string | null;
   vip: boolean;
+  total_depense?: number | null;
+  argent_du?: number | null;
+  nb_sejours?: number | null;
 }
 
 export interface Reservation {
@@ -56,9 +59,22 @@ export interface Reservation {
   total_price: number;
   payment_status: PaymentStatus;
   notes: string | null;
+  compte_id?: string | null;
+  acompte?: number | null;
   // Joined data
   room?: Room;
   client?: Client;
+}
+
+export interface NoteClient {
+  id: string;
+  client_id: string;
+  hotel_id: string;
+  type: 'Important' | 'Préférence' | 'Info';
+  titre: string;
+  contenu: string | null;
+  alerte_checkin: boolean;
+  created_at: string;
 }
 
 interface HotelContextType {
@@ -80,17 +96,18 @@ interface HotelContextType {
   addReservation: (reservation: Omit<Reservation, 'id' | 'hotel_id'>) => Promise<boolean>;
   updateReservation: (id: string, data: Partial<Reservation>) => Promise<boolean>;
   deleteReservation: (id: string) => Promise<boolean>;
-  checkIn: (reservationId: string) => Promise<boolean>;
-  checkOut: (reservationId: string) => Promise<boolean>;
+  checkIn: (reservationId: string) => Promise<{ success: boolean; alerts?: NoteClient[] }>;
+  checkOut: (reservationId: string) => Promise<{ success: boolean; solde?: number; compteId?: string }>;
   // Utils
   getAvailableRooms: (type?: RoomType) => Room[];
   refreshData: () => Promise<void>;
+  getClientAlerts: (clientId: string) => Promise<NoteClient[]>;
 }
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
 
 export function HotelProvider({ children }: { children: ReactNode }) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -164,6 +181,24 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   const refreshData = useCallback(async () => {
     await fetchData();
   }, [fetchData]);
+
+  // Get client alerts for check-in
+  const getClientAlerts = useCallback(async (clientId: string): Promise<NoteClient[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('notes_clients')
+        .select('*')
+        .eq('client_id', clientId)
+        .eq('alerte_checkin', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return (data || []) as NoteClient[];
+    } catch (error) {
+      console.error('Error fetching client alerts:', error);
+      return [];
+    }
+  }, []);
 
   // Room operations
   const addRoom = useCallback(async (roomData: Omit<Room, 'id' | 'hotel_id'>): Promise<boolean> => {
@@ -333,39 +368,163 @@ export function HotelProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
-  const checkIn = useCallback(async (reservationId: string): Promise<boolean> => {
+  // Check-in with automatic account creation
+  const checkIn = useCallback(async (reservationId: string): Promise<{ success: boolean; alerts?: NoteClient[] }> => {
     const reservation = reservations.find(r => r.id === reservationId);
-    if (!reservation) return false;
-
-    // Update room to occupied
-    await updateRoomStatus(reservation.room_id, 'occupied');
-    
-    // Update reservation status
-    const success = await updateReservation(reservationId, { status: 'checked_in' });
-    
-    if (success) {
-      toast({ title: "Check-in effectué", description: `Chambre ${reservation.room?.number}` });
+    if (!reservation || !hotelId || !user?.id) {
+      return { success: false };
     }
-    
-    return success;
-  }, [reservations, updateRoomStatus, updateReservation]);
 
-  const checkOut = useCallback(async (reservationId: string): Promise<boolean> => {
+    try {
+      // 1. Get client alerts
+      const alerts = await getClientAlerts(reservation.client_id);
+
+      // 2. Calculate nights
+      const checkInDate = new Date(reservation.check_in);
+      const checkOutDate = new Date(reservation.check_out);
+      const nbNuits = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+      const prixNuitee = reservation.room?.price_per_night || 0;
+      const acompte = reservation.acompte || 0;
+
+      // 3. Create compte client
+      const { data: nouveauCompte, error: compteError } = await supabase
+        .from('comptes_clients')
+        .insert({
+          reservation_id: reservationId,
+          client_id: reservation.client_id,
+          hotel_id: hotelId,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (compteError) throw compteError;
+
+      // 4. Add nuitées to compte
+      const nuitees = [];
+      for (let i = 0; i < nbNuits; i++) {
+        nuitees.push({
+          compte_id: nouveauCompte.id,
+          type: 'Nuitée',
+          description: `Nuitée ${i + 1}/${nbNuits}`,
+          montant: prixNuitee,
+          ajoute_par: user.id
+        });
+      }
+
+      if (nuitees.length > 0) {
+        const { error: lignesError } = await supabase
+          .from('lignes_compte')
+          .insert(nuitees);
+        if (lignesError) throw lignesError;
+      }
+
+      // 5. Add acompte if exists
+      if (acompte > 0) {
+        const { error: paiementError } = await supabase
+          .from('paiements_compte')
+          .insert({
+            compte_id: nouveauCompte.id,
+            montant: acompte,
+            methode: 'Acompte',
+            remarque: 'Acompte réservation',
+            recu_par: user.id
+          });
+        if (paiementError) throw paiementError;
+      }
+
+      // 6. Update reservation with compte_id
+      await supabase
+        .from('reservations')
+        .update({ compte_id: nouveauCompte.id })
+        .eq('id', reservationId);
+
+      // 7. Update room to occupied
+      await updateRoomStatus(reservation.room_id, 'occupied');
+      
+      // 8. Update reservation status
+      const success = await updateReservation(reservationId, { 
+        status: 'checked_in',
+        compte_id: nouveauCompte.id
+      });
+      
+      if (success) {
+        const totalNuitees = nbNuits * prixNuitee;
+        const solde = totalNuitees - acompte;
+        toast({ 
+          title: "Check-in effectué", 
+          description: `Chambre ${reservation.room?.number} • Compte ${nouveauCompte.numero} créé${solde > 0 ? ` • Solde: ${solde.toLocaleString()} Ar` : ''}`
+        });
+
+        // Show alerts if any
+        if (alerts.length > 0) {
+          alerts.forEach((alert, index) => {
+            setTimeout(() => {
+              toast({ 
+                title: `⚠️ Alerte: ${alert.titre}`,
+                description: alert.contenu || undefined,
+                variant: "destructive"
+              });
+            }, (index + 1) * 1000);
+          });
+        }
+      }
+      
+      await refreshData();
+      return { success, alerts };
+
+    } catch (error: any) {
+      console.error('Check-in error:', error);
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return { success: false };
+    }
+  }, [reservations, hotelId, user?.id, updateRoomStatus, updateReservation, getClientAlerts, refreshData]);
+
+  // Check-out with balance verification
+  const checkOut = useCallback(async (reservationId: string): Promise<{ success: boolean; solde?: number; compteId?: string }> => {
     const reservation = reservations.find(r => r.id === reservationId);
-    if (!reservation) return false;
-
-    // Update room to available
-    await updateRoomStatus(reservation.room_id, 'available');
-    
-    // Update reservation status
-    const success = await updateReservation(reservationId, { status: 'checked_out' });
-    
-    if (success) {
-      toast({ title: "Check-out effectué", description: `Chambre ${reservation.room?.number} disponible` });
+    if (!reservation) {
+      return { success: false };
     }
-    
-    return success;
-  }, [reservations, updateRoomStatus, updateReservation]);
+
+    try {
+      // Get compte and check solde
+      if (reservation.compte_id) {
+        const { data: compte, error } = await supabase
+          .from('comptes_clients')
+          .select('id, solde')
+          .eq('id', reservation.compte_id)
+          .single();
+
+        if (!error && compte && compte.solde > 0) {
+          // Return with solde to block checkout
+          return { 
+            success: false, 
+            solde: compte.solde,
+            compteId: compte.id
+          };
+        }
+      }
+
+      // Update room to cleaning
+      await updateRoomStatus(reservation.room_id, 'cleaning');
+      
+      // Update reservation status
+      const success = await updateReservation(reservationId, { status: 'checked_out' });
+      
+      if (success) {
+        toast({ title: "Check-out effectué", description: `Chambre ${reservation.room?.number} à nettoyer` });
+      }
+      
+      await refreshData();
+      return { success };
+
+    } catch (error: any) {
+      console.error('Check-out error:', error);
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return { success: false };
+    }
+  }, [reservations, updateRoomStatus, updateReservation, refreshData]);
 
   const getAvailableRooms = useCallback((type?: RoomType): Room[] => {
     return rooms.filter(room => {
@@ -396,6 +555,7 @@ export function HotelProvider({ children }: { children: ReactNode }) {
       checkOut,
       getAvailableRooms,
       refreshData,
+      getClientAlerts,
     }}>
       {children}
     </HotelContext.Provider>
