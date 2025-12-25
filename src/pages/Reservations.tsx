@@ -145,7 +145,8 @@ const Reservations = () => {
               </Button>
             </div>
             <Button 
-              className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+              variant="gradient"
+              className="gap-2"
               onClick={() => setIsNewReservationOpen(true)}
             >
               <Plus className="w-4 h-4" />
