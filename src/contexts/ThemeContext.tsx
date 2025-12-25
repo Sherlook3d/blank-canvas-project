@@ -29,13 +29,13 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     description: 'Dashboard sombre et professionnel',
   },
   'light-gray': {
-    // Neumorphism Light (image 8)
-    background: '220 14% 92%',
-    sidebar: '220 13% 95%',
-    card: '220 14% 96%',
-    foreground: '222 47% 20%',
-    mutedForeground: '215 16% 47%',
-    accent: '215 25% 45%',
+    // Neumorphism Light (image 8) - légèrement assombri
+    background: '220 14% 85%',
+    sidebar: '220 13% 88%',
+    card: '220 14% 90%',
+    foreground: '222 47% 15%',
+    mutedForeground: '215 16% 40%',
+    accent: '215 30% 40%',
     name: 'Neumorphisme',
     description: 'Thème clair avec effet relief',
   },
