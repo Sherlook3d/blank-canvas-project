@@ -68,26 +68,26 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     isDark: true,
   },
   'soft-light': {
-    // Inspired by Neumorphism + Tasklyn
-    background: '220 20% 91%', // #e8ecf3
-    sidebar: '220 20% 97%', // #f5f7fa
+    // Improved contrast light theme
+    background: '220 20% 96%', // #f3f5f9
+    sidebar: '230 25% 92%', // Slightly darker sidebar
     card: '0 0% 100%', // #ffffff
-    foreground: '222 47% 14%', // #1e293b
-    mutedForeground: '215 25% 35%', // #475569
-    disabledForeground: '215 20% 60%', // #94a3b8
-    border: '216 12% 84%', // #d1d5db
+    foreground: '222 47% 11%', // #1e293b - darker text
+    mutedForeground: '215 25% 40%', // Darker muted text
+    disabledForeground: '215 20% 55%', 
+    border: '220 15% 80%', // Slightly darker borders
     
-    accent: '263 70% 58%', // purple/lavender
-    accentHover: '263 70% 50%', // #7c3aed
-    gradientFrom: '263 70% 58%', // #8b5cf6 lavender
-    gradientTo: '239 84% 67%', // #6366f1 violet
+    accent: '263 70% 50%', // Darker purple/lavender
+    accentHover: '263 70% 42%', 
+    gradientFrom: '263 70% 50%', // #7c3aed darker lavender
+    gradientTo: '239 84% 55%', // #5457cd darker violet
     
-    badgeAvailable: '160 84% 39%', // #10b981
-    badgeOccupied: '38 95% 64%', // #f59e0b
-    badgeMaintenance: '215 20% 60%', // #94a3b8
+    badgeAvailable: '160 84% 35%', // Slightly darker green
+    badgeOccupied: '38 92% 50%', // Darker orange
+    badgeMaintenance: '215 20% 50%', 
     
-    cardShadow: '-8px -8px 16px rgba(255, 255, 255, 0.8), 8px 8px 16px rgba(163, 177, 198, 0.3)',
-    cardBorder: '214 32% 91%', // #e2e8f0
+    cardShadow: '-6px -6px 12px rgba(255, 255, 255, 0.9), 6px 6px 12px rgba(140, 150, 175, 0.25)',
+    cardBorder: '220 15% 85%', 
     glassEffect: false,
     neumorphism: true,
     
