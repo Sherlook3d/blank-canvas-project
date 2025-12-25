@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { DebtBadge } from '@/components/ui/DebtBadge';
 import { useHotel, Room, RoomStatus, RoomType, Client, Reservation } from '@/contexts/HotelContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
@@ -389,9 +390,12 @@ const Chambres = () => {
                           <User className="w-4 h-4 text-accent" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {occupant.client.first_name} {occupant.client.last_name}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {occupant.client.first_name} {occupant.client.last_name}
+                            </p>
+                            <DebtBadge amount={occupant.client.argent_du || 0} />
+                          </div>
                           <p className="text-xs text-muted-foreground">Occupant actuel</p>
                         </div>
                         <Button

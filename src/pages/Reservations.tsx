@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { DebtBadge } from '@/components/ui/DebtBadge';
 import { useHotel, ReservationStatus, RoomType, Reservation } from '@/contexts/HotelContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
@@ -358,9 +359,12 @@ const Reservations = () => {
                             {reservation.client?.first_name?.[0]}{reservation.client?.last_name?.[0]}
                           </div>
                           <div>
-                            <p className="font-medium text-foreground">
-                              {reservation.client?.first_name} {reservation.client?.last_name}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-foreground">
+                                {reservation.client?.first_name} {reservation.client?.last_name}
+                              </p>
+                              <DebtBadge amount={reservation.client?.argent_du || 0} />
+                            </div>
                             <p className="text-xs text-muted-foreground">{reservation.client?.email}</p>
                           </div>
                         </div>

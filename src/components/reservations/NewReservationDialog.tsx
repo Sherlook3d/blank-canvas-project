@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
+import { DebtBadge } from '@/components/ui/DebtBadge';
 import {
   Dialog,
   DialogContent,
@@ -79,7 +80,7 @@ export function NewReservationDialog({ open, onOpenChange }: NewReservationDialo
       room_id: selectedRoom,
       check_in: format(checkIn, 'yyyy-MM-dd'),
       check_out: format(checkOut, 'yyyy-MM-dd'),
-      status: 'confirmed',
+      status: 'pending',
       payment_status: 'pending',
       total_price: totalPrice,
       notes: notes || null,
@@ -135,6 +136,7 @@ export function NewReservationDialog({ open, onOpenChange }: NewReservationDialo
                       {client.vip && (
                         <span className="text-xs bg-accent/20 text-accent px-1.5 py-0.5 rounded">VIP</span>
                       )}
+                      <DebtBadge amount={client.argent_du || 0} />
                     </div>
                   </SelectItem>
                 ))}
