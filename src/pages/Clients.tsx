@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { DebtBadge } from '@/components/ui/DebtBadge';
-import { HelpButton, HelpPanel, HelpTooltip } from '@/components/help';
+import { HelpTooltip } from '@/components/help';
 import { useHotel, Client } from '@/contexts/HotelContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,6 @@ const Clients = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showEncaisser, setShowEncaisser] = useState(false);
   const [encaisserClient, setEncaisserClient] = useState<Client | null>(null);
-  const [showHelp, setShowHelp] = useState(false);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -162,19 +161,20 @@ const Clients = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <HelpButton onClick={() => setShowHelp(true)} />
-      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId="clients" />
       <PageHeader 
         title="Fichier clients"
         subtitle={`${clients.length} clients • ${vipCount} VIP`}
         actions={
-          <Button 
-            className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
-            onClick={() => setShowAddClient(true)}
-          >
-            <Plus className="w-4 h-4" />
-            Nouveau client
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button 
+              className="bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+              onClick={() => setShowAddClient(true)}
+            >
+              <Plus className="w-4 h-4" />
+              Nouveau client
+            </Button>
+            <HelpTooltip text="Créer une nouvelle fiche client dans la base de données" side="bottom" />
+          </div>
         }
       />
 
@@ -432,18 +432,21 @@ const Clients = () => {
                       )}
                       <DebtBadge amount={client.argent_du || 0} />
                       {(client.argent_du || 0) > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-xs gap-1 text-success hover:text-success hover:bg-success/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEncaisser(client);
-                          }}
-                        >
-                          <Banknote className="w-3 h-3" />
-                          Encaisser
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs gap-1 text-success hover:text-success hover:bg-success/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEncaisser(client);
+                            }}
+                          >
+                            <Banknote className="w-3 h-3" />
+                            Encaisser
+                          </Button>
+                          <HelpTooltip text="Encaisser la dette de ce client" side="right" />
+                        </>
                       )}
                     </div>
                     {(client as any).company && (
@@ -592,6 +595,21 @@ const Clients = () => {
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
+                        <DebtBadge amount={client.argent_du || 0} />
+                        {(client.argent_du || 0) > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs gap-1 text-success hover:text-success hover:bg-success/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEncaisser(client);
+                            }}
+                          >
+                            <Banknote className="w-3 h-3" />
+                            Encaisser
+                          </Button>
+                        )}
                         <Button 
                           variant="ghost" 
                           size="sm"

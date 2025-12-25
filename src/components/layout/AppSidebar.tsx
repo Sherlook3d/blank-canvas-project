@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -11,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Hotel,
-  LogOut
+  LogOut,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
@@ -24,16 +26,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { HelpPanel } from '@/components/help';
 
 const navItems = [
-  { path: '/', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['owner', 'manager', 'receptionist'] as UserRole[] },
-  { path: '/chambres', label: 'Chambres', icon: BedDouble, roles: ['owner', 'manager', 'receptionist'] as UserRole[] },
-  { path: '/reservations', label: 'Réservations', icon: CalendarCheck, roles: ['owner', 'manager', 'receptionist'] as UserRole[] },
-  { path: '/comptes', label: 'Comptes Clients', icon: Wallet, roles: ['owner', 'manager', 'receptionist'] as UserRole[] },
-  { path: '/clients', label: 'Clients', icon: Users, roles: ['owner', 'manager', 'receptionist'] as UserRole[] },
-  { path: '/utilisateurs', label: 'Utilisateurs', icon: UserCog, roles: ['owner', 'manager'] as UserRole[] },
-  { path: '/statistiques', label: 'Statistiques', icon: BarChart3, roles: ['owner', 'manager'] as UserRole[] },
-  { path: '/parametres', label: 'Paramètres', icon: Settings, roles: ['owner', 'manager'] as UserRole[] },
+  { path: '/', label: 'Tableau de bord', icon: LayoutDashboard, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'dashboard' },
+  { path: '/chambres', label: 'Chambres', icon: BedDouble, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'chambres' },
+  { path: '/reservations', label: 'Réservations', icon: CalendarCheck, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'reservations' },
+  { path: '/comptes', label: 'Comptes Clients', icon: Wallet, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'comptes' },
+  { path: '/clients', label: 'Clients', icon: Users, roles: ['owner', 'manager', 'receptionist'] as UserRole[], helpId: 'clients' },
+  { path: '/utilisateurs', label: 'Utilisateurs', icon: UserCog, roles: ['owner', 'manager'] as UserRole[], helpId: 'parametres' },
+  { path: '/statistiques', label: 'Statistiques', icon: BarChart3, roles: ['owner', 'manager'] as UserRole[], helpId: 'statistiques' },
+  { path: '/parametres', label: 'Paramètres', icon: Settings, roles: ['owner', 'manager'] as UserRole[], helpId: 'parametres' },
 ];
 
 interface AppSidebarProps {
@@ -45,6 +48,10 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, role, hasRole, logout } = useAuth();
+  const [showHelp, setShowHelp] = useState(false);
+
+  // Get the current page's helpId
+  const currentHelpId = navItems.find(item => item.path === location.pathname)?.helpId || 'dashboard';
 
   // Show all items if no role (new user) or filter by role
   const visibleNavItems = navItems.filter(item => 
@@ -112,7 +119,24 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             </NavLink>
           );
         })}
+        {/* Help Button */}
+        <button
+          onClick={() => setShowHelp(true)}
+          className={cn(
+            "nav-item text-primary hover:bg-primary/10",
+            collapsed && "justify-center"
+          )}
+          title={collapsed ? "Aide" : undefined}
+        >
+          <HelpCircle className="w-5 h-5 flex-shrink-0" />
+          {!collapsed && (
+            <span className="animate-fade-in truncate">Aide</span>
+          )}
+        </button>
       </nav>
+
+      {/* Help Panel */}
+      <HelpPanel isOpen={showHelp} onClose={() => setShowHelp(false)} pageId={currentHelpId} />
 
       {/* Toggle Button */}
       <button
