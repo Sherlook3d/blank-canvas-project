@@ -15,7 +15,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  Activity
+  Activity,
+  Database,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -25,6 +27,7 @@ import { useHotel, RoomType } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const roomTypeLabels: Record<RoomType, string> = {
   single: 'Simple',
@@ -47,7 +50,122 @@ const formatDate = (dateStr: string) => {
 const Dashboard = () => {
   const { hotel, rooms, clients, reservations, isLoading, refreshData } = useHotel();
   const { formatCurrency } = useCurrency();
+  const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isAddingDemoData, setIsAddingDemoData] = useState(false);
+
+  const hasNoData = rooms.length === 0 && clients.length === 0 && reservations.length === 0;
+
+  const addDemoData = async () => {
+    if (!hotel?.id) return;
+    
+    setIsAddingDemoData(true);
+    try {
+      // Create demo rooms
+      const roomsData = [
+        { hotel_id: hotel.id, number: '101', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation'] },
+        { hotel_id: hotel.id, number: '102', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation'] },
+        { hotel_id: hotel.id, number: '103', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'maintenance', amenities: ['WiFi', 'TV', 'Climatisation'] },
+        { hotel_id: hotel.id, number: '201', type: 'double', capacity: 3, price_per_night: 120, floor: 2, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar'] },
+        { hotel_id: hotel.id, number: '202', type: 'double', capacity: 3, price_per_night: 120, floor: 2, status: 'occupied', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar'] },
+        { hotel_id: hotel.id, number: '301', type: 'suite', capacity: 4, price_per_night: 200, floor: 3, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer'] },
+        { hotel_id: hotel.id, number: '302', type: 'suite', capacity: 4, price_per_night: 250, floor: 3, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer', 'Balcon'] },
+      ];
+
+      const { data: createdRooms, error: roomsError } = await supabase
+        .from('rooms')
+        .insert(roomsData)
+        .select();
+
+      if (roomsError) throw roomsError;
+
+      // Create demo clients
+      const clientsData = [
+        { hotel_id: hotel.id, first_name: 'Jean', last_name: 'Dupont', email: 'jean.dupont@email.com', phone: '+33 6 12 34 56 78', nationality: 'France', id_type: 'CNI', id_number: 'FR123456', vip: false },
+        { hotel_id: hotel.id, first_name: 'Marie', last_name: 'Martin', email: 'marie.martin@email.com', phone: '+33 6 98 76 54 32', nationality: 'France', id_type: 'Passeport', id_number: 'FR789012', vip: true },
+        { hotel_id: hotel.id, first_name: 'Pierre', last_name: 'Bernard', email: 'pierre.bernard@email.com', phone: '+33 6 55 44 33 22', nationality: 'Belgique', id_type: 'CNI', id_number: 'BE456789', company: 'TechCorp', vip: false },
+        { hotel_id: hotel.id, first_name: 'Sophie', last_name: 'Petit', email: 'sophie.petit@email.com', phone: '+33 6 11 22 33 44', nationality: 'Suisse', id_type: 'Passeport', id_number: 'CH112233', vip: true },
+        { hotel_id: hotel.id, first_name: 'Lucas', last_name: 'Moreau', email: 'lucas.moreau@email.com', phone: '+33 6 77 88 99 00', nationality: 'France', id_type: 'CNI', id_number: 'FR334455', vip: false },
+      ];
+
+      const { data: createdClients, error: clientsError } = await supabase
+        .from('clients')
+        .insert(clientsData)
+        .select();
+
+      if (clientsError) throw clientsError;
+
+      // Create demo reservations
+      const today = new Date();
+      const reservationsData = [
+        {
+          hotel_id: hotel.id,
+          room_id: createdRooms![4].id,
+          client_id: createdClients![0].id,
+          check_in: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          check_out: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'checked_in',
+          payment_status: 'paid',
+          total_price: 600,
+          notes: 'Client régulier, chambre calme demandée',
+        },
+        {
+          hotel_id: hotel.id,
+          room_id: createdRooms![0].id,
+          client_id: createdClients![1].id,
+          check_in: new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          check_out: new Date(today.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'confirmed',
+          payment_status: 'partial',
+          total_price: 255,
+          notes: 'Cliente VIP - Prévoir bouquet de fleurs',
+        },
+        {
+          hotel_id: hotel.id,
+          room_id: createdRooms![5].id,
+          client_id: createdClients![2].id,
+          check_in: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          check_out: new Date(today.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'pending',
+          payment_status: 'pending',
+          total_price: 600,
+          notes: 'Voyage d\'affaires - Facture entreprise TechCorp',
+        },
+        {
+          hotel_id: hotel.id,
+          room_id: createdRooms![3].id,
+          client_id: createdClients![3].id,
+          check_in: new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          check_out: new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'confirmed',
+          payment_status: 'paid',
+          total_price: 480,
+        },
+      ];
+
+      const { error: reservationsError } = await supabase
+        .from('reservations')
+        .insert(reservationsData);
+
+      if (reservationsError) throw reservationsError;
+
+      toast({
+        title: 'Données de démonstration ajoutées',
+        description: `${createdRooms!.length} chambres, ${createdClients!.length} clients et ${reservationsData.length} réservations créés.`,
+      });
+
+      refreshData();
+    } catch (error: any) {
+      console.error('Demo data error:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Erreur lors de l\'ajout des données',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAddingDemoData(false);
+    }
+  };
 
   // Update time every minute
   useEffect(() => {
@@ -178,6 +296,35 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Empty State - Add Demo Data */}
+      {hasNoData && (
+        <div className="gravity-card flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+            <Database className="w-8 h-8 text-accent" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Aucune donnée</h3>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Votre hôtel est prêt mais il n'y a pas encore de données. Ajoutez des données de démonstration pour explorer l'application.
+          </p>
+          <Button 
+            onClick={addDemoData} 
+            disabled={isAddingDemoData}
+            className="gap-2"
+          >
+            {isAddingDemoData ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Ajout en cours...
+              </>
+            ) : (
+              <>
+                <Database className="w-4 h-4" />
+                Ajouter des données de démonstration
+              </>
+            )}
+          </Button>
+        </div>
+      )}
       {/* Header */}
       <PageHeader 
         title="Tableau de bord"
