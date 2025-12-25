@@ -17,6 +17,7 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          argent_du: number | null
           company: string | null
           created_at: string
           email: string | null
@@ -27,13 +28,16 @@ export type Database = {
           id_type: string | null
           last_name: string
           nationality: string | null
+          nb_sejours: number | null
           notes: string | null
           phone: string | null
+          total_depense: number | null
           updated_at: string
           vip: boolean | null
         }
         Insert: {
           address?: string | null
+          argent_du?: number | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -44,13 +48,16 @@ export type Database = {
           id_type?: string | null
           last_name: string
           nationality?: string | null
+          nb_sejours?: number | null
           notes?: string | null
           phone?: string | null
+          total_depense?: number | null
           updated_at?: string
           vip?: boolean | null
         }
         Update: {
           address?: string | null
+          argent_du?: number | null
           company?: string | null
           created_at?: string
           email?: string | null
@@ -61,8 +68,10 @@ export type Database = {
           id_type?: string | null
           last_name?: string
           nationality?: string | null
+          nb_sejours?: number | null
           notes?: string | null
           phone?: string | null
+          total_depense?: number | null
           updated_at?: string
           vip?: boolean | null
         }
@@ -72,6 +81,79 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comptes_clients: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          created_by: string | null
+          date_cloture: string | null
+          date_ouverture: string | null
+          hotel_id: string
+          id: string
+          numero: string | null
+          reservation_id: string | null
+          solde: number | null
+          statut: string | null
+          total_facture: number | null
+          total_paye: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_cloture?: string | null
+          date_ouverture?: string | null
+          hotel_id: string
+          id?: string
+          numero?: string | null
+          reservation_id?: string | null
+          solde?: number | null
+          statut?: string | null
+          total_facture?: number | null
+          total_paye?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_cloture?: string | null
+          date_ouverture?: string | null
+          hotel_id?: string
+          id?: string
+          numero?: string | null
+          reservation_id?: string | null
+          solde?: number | null
+          statut?: string | null
+          total_facture?: number | null
+          total_paye?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comptes_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comptes_clients_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comptes_clients_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
             referencedColumns: ["id"]
           },
         ]
@@ -105,6 +187,142 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      lignes_compte: {
+        Row: {
+          ajoute_par: string | null
+          compte_id: string
+          created_at: string | null
+          date_ligne: string | null
+          description: string | null
+          id: string
+          montant: number
+          type: string
+        }
+        Insert: {
+          ajoute_par?: string | null
+          compte_id: string
+          created_at?: string | null
+          date_ligne?: string | null
+          description?: string | null
+          id?: string
+          montant: number
+          type: string
+        }
+        Update: {
+          ajoute_par?: string | null
+          compte_id?: string
+          created_at?: string | null
+          date_ligne?: string | null
+          description?: string | null
+          id?: string
+          montant?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lignes_compte_compte_id_fkey"
+            columns: ["compte_id"]
+            isOneToOne: false
+            referencedRelation: "comptes_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes_clients: {
+        Row: {
+          alerte_checkin: boolean | null
+          client_id: string
+          contenu: string | null
+          created_at: string | null
+          created_by: string | null
+          hotel_id: string
+          id: string
+          titre: string
+          type: string | null
+        }
+        Insert: {
+          alerte_checkin?: boolean | null
+          client_id: string
+          contenu?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          hotel_id: string
+          id?: string
+          titre: string
+          type?: string | null
+        }
+        Update: {
+          alerte_checkin?: boolean | null
+          client_id?: string
+          contenu?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          hotel_id?: string
+          id?: string
+          titre?: string
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_clients_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      paiements_compte: {
+        Row: {
+          compte_id: string
+          created_at: string | null
+          date_paiement: string | null
+          id: string
+          methode: string
+          montant: number
+          recu_par: string | null
+          reference: string | null
+          remarque: string | null
+        }
+        Insert: {
+          compte_id: string
+          created_at?: string | null
+          date_paiement?: string | null
+          id?: string
+          methode: string
+          montant: number
+          recu_par?: string | null
+          reference?: string | null
+          remarque?: string | null
+        }
+        Update: {
+          compte_id?: string
+          created_at?: string | null
+          date_paiement?: string | null
+          id?: string
+          methode?: string
+          montant?: number
+          recu_par?: string | null
+          reference?: string | null
+          remarque?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paiements_compte_compte_id_fkey"
+            columns: ["compte_id"]
+            isOneToOne: false
+            referencedRelation: "comptes_clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -149,9 +367,11 @@ export type Database = {
       }
       reservations: {
         Row: {
+          acompte: number | null
           check_in: string
           check_out: string
           client_id: string
+          compte_id: string | null
           created_at: string
           created_by: string | null
           hotel_id: string
@@ -164,9 +384,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          acompte?: number | null
           check_in: string
           check_out: string
           client_id: string
+          compte_id?: string | null
           created_at?: string
           created_by?: string | null
           hotel_id: string
@@ -179,9 +401,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          acompte?: number | null
           check_in?: string
           check_out?: string
           client_id?: string
+          compte_id?: string | null
           created_at?: string
           created_by?: string | null
           hotel_id?: string
@@ -199,6 +423,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_compte_id_fkey"
+            columns: ["compte_id"]
+            isOneToOne: false
+            referencedRelation: "comptes_clients"
             referencedColumns: ["id"]
           },
           {
