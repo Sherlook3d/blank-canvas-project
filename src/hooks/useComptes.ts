@@ -106,7 +106,7 @@ export const useComptes = () => {
         .select(`
           *,
           client:clients(id, first_name, last_name, email, phone, vip),
-          reservation:reservations(
+          reservation:reservations!comptes_clients_reservation_id_fkey(
             id, room_id, check_in, check_out, status,
             room:rooms(id, number, type)
           ),
@@ -317,7 +317,7 @@ export const useComptes = () => {
         .select(`
           *,
           client:clients(id, first_name, last_name, email, phone, vip),
-          reservation:reservations(
+          reservation:reservations!comptes_clients_reservation_id_fkey(
             id, room_id, check_in, check_out, status,
             room:rooms(id, number, type)
           ),
@@ -400,7 +400,7 @@ export const useComptes = () => {
         .from('comptes_clients')
         .select(`
           *,
-          reservation:reservations(
+          reservation:reservations!comptes_clients_reservation_id_fkey(
             id, room_id, check_in, check_out, status,
             room:rooms(id, number, type)
           ),
