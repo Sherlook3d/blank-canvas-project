@@ -13,6 +13,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Chambres from "./pages/Chambres";
 import Reservations from "./pages/Reservations";
+import Comptes from "./pages/Comptes";
 import Clients from "./pages/Clients";
 import Utilisateurs from "./pages/Utilisateurs";
 import Statistiques from "./pages/Statistiques";
@@ -61,6 +62,11 @@ const App = () => (
                     <Route path="/reservations" element={
                       <ProtectedRoute pageKey="reservations">
                         <Reservations />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/comptes" element={
+                      <ProtectedRoute pageKey="comptes">
+                        <Comptes />
                       </ProtectedRoute>
                     } />
                     <Route path="/clients" element={
