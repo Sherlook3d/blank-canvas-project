@@ -68,32 +68,32 @@ export const themeConfigs: Record<ThemeType, ThemeColors> = {
     isDark: true,
   },
   'soft-light': {
-    // Improved contrast light theme
-    background: '220 20% 96%', // #f3f5f9
-    sidebar: '230 25% 92%', // Slightly darker sidebar
-    card: '0 0% 100%', // #ffffff
-    foreground: '222 47% 11%', // #1e293b - darker text
-    mutedForeground: '215 25% 40%', // Darker muted text
-    disabledForeground: '215 20% 55%', 
-    border: '220 15% 80%', // Slightly darker borders
+    // Apple Dark theme inspired by macOS Sequoia
+    background: '225 15% 10%', // #161819 - Very dark gray
+    sidebar: '225 12% 14%', // #1f2123 - Slightly lighter sidebar
+    card: '225 12% 17%', // #272a2d - Elevated card surface
+    foreground: '0 0% 98%', // #fafafa - Pure white text
+    mutedForeground: '220 10% 60%', // #919599 - Muted gray
+    disabledForeground: '220 8% 45%', 
+    border: '225 10% 22%', // #343739 - Subtle borders
     
-    accent: '263 70% 50%', // Darker purple/lavender
-    accentHover: '263 70% 42%', 
-    gradientFrom: '263 70% 50%', // #7c3aed darker lavender
-    gradientTo: '239 84% 55%', // #5457cd darker violet
+    accent: '211 100% 50%', // #007AFF - Apple Blue
+    accentHover: '211 100% 45%', // Darker blue
+    gradientFrom: '211 100% 50%', // Apple Blue
+    gradientTo: '221 100% 60%', // Purple-blue
     
-    badgeAvailable: '160 84% 35%', // Slightly darker green
-    badgeOccupied: '38 92% 50%', // Darker orange
-    badgeMaintenance: '215 20% 50%', 
+    badgeAvailable: '142 70% 45%', // Apple Green
+    badgeOccupied: '32 95% 55%', // Apple Orange  
+    badgeMaintenance: '220 8% 50%', 
     
-    cardShadow: '-6px -6px 12px rgba(255, 255, 255, 0.9), 6px 6px 12px rgba(140, 150, 175, 0.25)',
-    cardBorder: '220 15% 85%', 
-    glassEffect: false,
-    neumorphism: true,
+    cardShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05)',
+    cardBorder: '225 10% 25%', 
+    glassEffect: true,
+    neumorphism: false,
     
-    name: 'Soft Light',
-    description: 'Thème clair neumorphique',
-    isDark: false,
+    name: 'Apple Dark',
+    description: 'Thème sombre style macOS Sequoia',
+    isDark: true,
   },
   'ocean-blue': {
     // Modern blue dashboard
