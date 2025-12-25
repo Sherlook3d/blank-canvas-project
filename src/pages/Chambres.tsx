@@ -13,7 +13,10 @@ import {
   List,
   Edit2,
   User,
-  ExternalLink
+  ExternalLink,
+  ShoppingCart,
+  CreditCard,
+  Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +43,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { RoomDetailsDialog } from '@/components/rooms/RoomDetailsDialog';
 import { NewReservationDialog } from '@/components/reservations/NewReservationDialog';
+import { AjouterConsommationDialog } from '@/components/comptes/AjouterConsommationDialog';
+import { EncaisserDialog } from '@/components/comptes/EncaisserDialog';
+import { useComptes, CompteClient } from '@/hooks/useComptes';
 
 type ViewMode = 'grid' | 'list';
 type FilterStatus = 'all' | RoomStatus;
@@ -90,16 +96,36 @@ const Chambres = () => {
     status: 'available' as RoomStatus,
   });
   const { rooms, reservations, isLoading, addRoom, refreshData } = useHotel();
+  const { comptes, ajouterConsommation, refreshComptes } = useComptes();
+  
+  // State for consumption/payment dialogs
+  const [showConsommation, setShowConsommation] = useState(false);
+  const [showEncaisser, setShowEncaisser] = useState(false);
+  const [selectedCompte, setSelectedCompte] = useState<CompteClient | null>(null);
 
   // Get current occupant for a room
-  const getOccupant = (roomId: string): { client: Client; reservation: Reservation } | null => {
+  const getOccupant = (roomId: string): { client: Client; reservation: Reservation; compte: CompteClient | null } | null => {
     const activeReservation = reservations.find(
       r => r.room_id === roomId && r.status === 'checked_in' && r.client
     );
     if (activeReservation && activeReservation.client) {
-      return { client: activeReservation.client, reservation: activeReservation };
+      // Find associated compte
+      const compte = comptes.find(c => c.reservation_id === activeReservation.id && c.statut === 'Ouvert') || null;
+      return { client: activeReservation.client, reservation: activeReservation, compte };
     }
     return null;
+  };
+
+  // Handle add consumption
+  const handleAddConsommation = (compte: CompteClient) => {
+    setSelectedCompte(compte);
+    setShowConsommation(true);
+  };
+
+  // Handle payment
+  const handleEncaisser = (compte: CompteClient) => {
+    setSelectedCompte(compte);
+    setShowEncaisser(true);
   };
 
   const filteredRooms = rooms.filter((room) => {
@@ -190,6 +216,20 @@ const Chambres = () => {
       <NewReservationDialog
         open={showNewReservation}
         onOpenChange={setShowNewReservation}
+      />
+
+      {/* Consommation Dialog */}
+      <AjouterConsommationDialog
+        open={showConsommation}
+        onOpenChange={setShowConsommation}
+        compte={selectedCompte}
+      />
+
+      {/* Encaisser Dialog */}
+      <EncaisserDialog
+        open={showEncaisser}
+        onOpenChange={setShowEncaisser}
+        compte={selectedCompte}
       />
 
       {/* Add Room Dialog */}
@@ -341,10 +381,10 @@ const Chambres = () => {
                     </div>
                   </div>
 
-                  {/* Occupant Info */}
+                  {/* Occupant Info with Quick Actions */}
                   {room.status === 'occupied' && occupant && (
                     <div className="mb-3 p-2.5 bg-accent/10 border border-accent/20 rounded-lg">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                           <User className="w-4 h-4 text-accent" />
                         </div>
@@ -363,6 +403,29 @@ const Chambres = () => {
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Button>
                       </div>
+                      {/* Quick Account Actions */}
+                      {occupant.compte && (
+                        <div className="flex gap-1.5 mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-accent/30 text-accent hover:bg-accent/20"
+                            onClick={() => handleAddConsommation(occupant.compte!)}
+                          >
+                            <ShoppingCart className="w-3 h-3" />
+                            Consommation
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-accent/30 text-accent hover:bg-accent/20"
+                            onClick={() => handleEncaisser(occupant.compte!)}
+                          >
+                            <Wallet className="w-3 h-3" />
+                            Encaisser
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                   
