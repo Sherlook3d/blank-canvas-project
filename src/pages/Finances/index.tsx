@@ -51,6 +51,12 @@ export default function PageFinances() {
   const [periode, setPeriode] = useState<Periode>('mois');
   const [dateSelectionnee] = useState(new Date());
 
+  const periodeOptions: { value: Periode; label: string }[] = [
+    { value: 'jour', label: "Aujourd'hui" },
+    { value: 'semaine', label: 'Cette semaine' },
+    { value: 'mois', label: 'Ce mois' },
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -60,25 +66,28 @@ export default function PageFinances() {
           <p className="text-muted-foreground mt-1">Suivi complet de vos finances</p>
         </div>
         
-        {/* Sélecteur de période */}
+        {/* Sélecteur de période en boutons + Export */}
         <div className="flex gap-2 items-center flex-wrap">
-          <Select value={periode} onValueChange={(v) => setPeriode(v as Periode)}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="jour">📅 Aujourd'hui</SelectItem>
-              <SelectItem value="semaine">📅 Cette semaine</SelectItem>
-              <SelectItem value="mois">📅 Ce mois</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex bg-muted rounded-lg p-1 gap-1">
+            {periodeOptions.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={periode === opt.value ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setPeriode(opt.value)}
+                className={periode === opt.value ? '' : 'text-muted-foreground hover:text-foreground'}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
 
-          <Button variant="outline" onClick={() => FinancesWorkflows.exporterBilanPDF(periode, dateSelectionnee)}>
+          <Button variant="outline" size="sm" onClick={() => FinancesWorkflows.exporterBilanPDF(periode, dateSelectionnee)}>
             <Printer className="w-4 h-4 mr-2" />
             Imprimer
           </Button>
 
-          <Button variant="outline" onClick={() => FinancesWorkflows.exporterBilanExcel(periode, dateSelectionnee)}>
+          <Button variant="outline" size="sm" onClick={() => FinancesWorkflows.exporterBilanExcel(periode, dateSelectionnee)}>
             <Download className="w-4 h-4 mr-2" />
             Excel
           </Button>

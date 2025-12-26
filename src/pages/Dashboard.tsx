@@ -354,88 +354,83 @@ const Dashboard = () => {
         }
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 stagger-children">
-        <KpiCard
-          icon={BedDouble}
-          iconColor="green"
-          title="Chambres disponibles"
-          value={stats.availableRooms}
-          subtitle={`sur ${rooms.length} chambres`}
-          change={stats.occupancyRate > 50 ? 8 : -5}
-        />
-        <KpiCard
-          icon={CalendarCheck}
-          iconColor="orange"
-          title="Réservations du jour"
-          value={stats.todayReservations}
-          subtitle={`${stats.arrivals} arrivées, ${stats.departures} départs`}
-          change={12}
-        />
-        <KpiCard
-          icon={Banknote}
-          iconColor="yellow"
-          title="Revenus du mois"
-          value={formatCurrency(stats.monthlyRevenue)}
-          subtitle="Ce mois"
-          change={15}
-        />
-        <KpiCard
-          icon={AlertTriangle}
-          iconColor="orange"
-          title="Comptes ouverts"
-          value={comptesStats.nbComptesOuverts}
-          subtitle={formatCurrency(comptesStats.totalARecevoir) + ' à recevoir'}
-        />
-        <KpiCard
-          icon={Users}
-          iconColor="orange"
-          title="Clients VIP"
-          value={stats.vipClients}
-          subtitle={`sur ${stats.totalClients} clients`}
-          change={5}
-        />
-      </div>
+      {/* Compact Stats Grid - All key metrics in one compact row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 stagger-children">
+        {/* Chambres disponibles */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
+              <BedDouble className="w-5 h-5 text-success" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground">{stats.availableRooms}</p>
+              <p className="text-xs text-muted-foreground truncate">Disponibles</p>
+            </div>
+          </div>
+        </div>
 
-      {/* Live Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="gravity-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-success" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{stats.occupancyRate}%</p>
-            <p className="text-xs text-muted-foreground">Taux d'occupation</p>
-          </div>
-        </div>
-        
-        <div className="gravity-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-            <ArrowUpRight className="w-6 h-6 text-accent" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{stats.pendingCheckIns}</p>
-            <p className="text-xs text-muted-foreground">Check-ins en attente</p>
+        {/* Taux occupation */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-5 h-5 text-accent" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground">{stats.occupancyRate}%</p>
+              <p className="text-xs text-muted-foreground truncate">Occupation</p>
+            </div>
           </div>
         </div>
-        
-        <div className="gravity-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center">
-            <BedDouble className="w-6 h-6 text-info" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{stats.activeReservations}</p>
-            <p className="text-xs text-muted-foreground">Séjours en cours</p>
+
+        {/* Arrivées du jour */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center flex-shrink-0">
+              <ArrowUpRight className="w-5 h-5 text-info" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground">{stats.arrivals}</p>
+              <p className="text-xs text-muted-foreground truncate">Arrivées</p>
+            </div>
           </div>
         </div>
-        
-        <div className="gravity-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Banknote className="w-6 h-6 text-primary" />
+
+        {/* Départs du jour */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+              <ArrowDownRight className="w-5 h-5 text-warning" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground">{stats.departures}</p>
+              <p className="text-xs text-muted-foreground truncate">Départs</p>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.averageDailyRate)}</p>
-            <p className="text-xs text-muted-foreground">Prix moyen/nuit</p>
+        </div>
+
+        {/* Revenus du mois */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Banknote className="w-5 h-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-bold text-foreground truncate">{formatCurrency(stats.monthlyRevenue)}</p>
+              <p className="text-xs text-muted-foreground truncate">Revenus</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Comptes ouverts */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+              <Receipt className="w-5 h-5 text-orange-500" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-foreground">{comptesStats.nbComptesOuverts}</p>
+              <p className="text-xs text-muted-foreground truncate">Comptes ouverts</p>
+            </div>
           </div>
         </div>
       </div>
