@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { CalendarIcon } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 interface NewReservationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preSelectedRoomId?: string;
 }
 
 const roomTypeLabels: Record<RoomType, string> = {
@@ -44,16 +45,23 @@ const roomTypeLabels: Record<RoomType, string> = {
   family: 'Familiale',
 };
 
-export function NewReservationDialog({ open, onOpenChange }: NewReservationDialogProps) {
+export function NewReservationDialog({ open, onOpenChange, preSelectedRoomId }: NewReservationDialogProps) {
   const { clients, rooms, addReservation, getAvailableRooms } = useHotel();
   const { formatCurrency } = useCurrency();
   
   const [selectedClient, setSelectedClient] = useState<string>('');
-  const [selectedRoom, setSelectedRoom] = useState<string>('');
+  const [selectedRoom, setSelectedRoom] = useState<string>(preSelectedRoomId || '');
   const [checkIn, setCheckIn] = useState<Date | undefined>(new Date());
   const [checkOut, setCheckOut] = useState<Date | undefined>(addDays(new Date(), 1));
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update selected room when preSelectedRoomId changes
+  useEffect(() => {
+    if (preSelectedRoomId && open) {
+      setSelectedRoom(preSelectedRoomId);
+    }
+  }, [preSelectedRoomId, open]);
 
   // Calculate available rooms
   const availableRooms = useMemo(() => {
