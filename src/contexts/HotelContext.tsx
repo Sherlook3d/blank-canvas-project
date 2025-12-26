@@ -307,11 +307,22 @@ export function HotelProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
-  // Reservation operations
+  // Reservation operations with debt alert
   const addReservation = useCallback(async (resData: Omit<Reservation, 'id' | 'hotel_id'>): Promise<boolean> => {
     if (!hotelId) return false;
     
     const { room, client, ...insertData } = resData;
+    
+    // Check if client has unpaid balances
+    const clientData = clients.find(c => c.id === resData.client_id);
+    if (clientData && (clientData.argent_du || 0) > 0) {
+      toast({ 
+        title: "⚠️ Attention: Client avec impayés",
+        description: `${clientData.first_name} ${clientData.last_name} doit ${(clientData.argent_du || 0).toLocaleString()} Ar`,
+        variant: "destructive",
+        duration: 8000
+      });
+    }
     
     const { data, error } = await supabase
       .from('reservations')
