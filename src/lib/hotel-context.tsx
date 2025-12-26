@@ -22,6 +22,8 @@ export interface HotelTenant {
   max_utilisateurs: number;
   logo_url?: string | null;
   couleur_primaire?: string | null;
+  prix_mensuel?: number | null;
+  date_abonnement?: string | null;
 }
 
 export interface HotelContextType {
