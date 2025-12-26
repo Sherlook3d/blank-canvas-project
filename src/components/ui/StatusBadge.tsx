@@ -25,7 +25,7 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
   occupied: { label: 'Occupée', className: 'badge-occupied' },
   maintenance: { label: 'Maintenance', className: 'badge-maintenance' },
   out_of_service: { label: 'Hors service', className: 'badge-cancelled' },
-  cleaning: { label: 'Nettoyage', className: 'badge-pending' },
+  cleaning: { label: 'Nettoyage', className: 'badge-cleaning' },
   
   // Role badges
   owner: { label: 'Propriétaire', className: 'badge-owner' },
