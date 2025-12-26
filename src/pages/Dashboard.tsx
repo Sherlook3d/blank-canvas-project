@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BedDouble, 
   CalendarCheck, 
@@ -27,11 +28,14 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { DebtBadge } from '@/components/ui/DebtBadge';
-import { useHotel, RoomType } from '@/contexts/HotelContext';
+import { useHotel, RoomType, Room } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { RoomDetailsDialog } from '@/components/rooms/RoomDetailsDialog';
+import { NewReservationDialog } from '@/components/reservations/NewReservationDialog';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const roomTypeLabels: Record<RoomType, string> = {
   single: 'Simple',
@@ -52,12 +56,17 @@ const formatDate = (dateStr: string) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { hotel, rooms, clients, reservations, isLoading, refreshData } = useHotel();
   const { formatCurrency } = useCurrency();
   const { toast } = useToast();
   const { getStats: getComptesStats, comptesOuverts } = useComptes();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isAddingDemoData, setIsAddingDemoData] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [showRoomDetails, setShowRoomDetails] = useState(false);
+  const [showNewReservation, setShowNewReservation] = useState(false);
+  const [preSelectedRoomId, setPreSelectedRoomId] = useState<string | undefined>();
   
   const comptesStats = getComptesStats();
 
@@ -268,6 +277,23 @@ const Dashboard = () => {
       .length;
     const averageDailyRate = totalRoomNights > 0 ? totalRoomRevenue / totalRoomNights : 0;
 
+    // Revenue last 7 days
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return date.toISOString().split('T')[0];
+    });
+
+    const revenueLast7Days = last7Days.map(date => {
+      const dayRevenue = reservations
+        .filter(r => r.status !== 'cancelled' && r.check_in === date)
+        .reduce((sum, r) => sum + (r.total_price || 0), 0);
+      return {
+        date: new Date(date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+        revenue: dayRevenue,
+      };
+    });
+
     return {
       availableRooms,
       occupiedRooms,
@@ -280,6 +306,7 @@ const Dashboard = () => {
       pendingCheckIns,
       monthlyRevenue,
       revenueByRoomType,
+      revenueLast7Days,
       vipClients,
       activeReservations,
       averageDailyRate,
@@ -292,6 +319,18 @@ const Dashboard = () => {
     .slice(0, 5);
 
   const featuredRooms = rooms.slice(0, 4);
+
+  const handleRoomClick = (room: Room) => {
+    setSelectedRoom(room);
+    setShowRoomDetails(true);
+  };
+
+  const handleReserveRoom = (room: Room) => {
+    if (room.status === 'available') {
+      setPreSelectedRoomId(room.id);
+      setShowNewReservation(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -438,7 +477,7 @@ const Dashboard = () => {
       {/* Stats Row: Statut + Revenus + Réservations récentes */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Occupancy Stats - Left */}
-        <div className="lg:col-span-4 gravity-card p-4 h-full">
+        <div className="lg:col-span-3 gravity-card p-4 h-full">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-sm text-foreground">Statut des chambres</h3>
             <p className="text-lg font-bold text-foreground">{stats.occupancyRate}%</p>
@@ -451,7 +490,7 @@ const Dashboard = () => {
             />
           </div>
           
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <div className="text-center p-2 bg-success/10 rounded-lg">
               <p className="text-base font-bold text-success">{stats.availableRooms}</p>
               <p className="text-[10px] text-muted-foreground">Dispo</p>
@@ -471,36 +510,68 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Revenue by Room Type - Middle */}
-        {Object.keys(stats.revenueByRoomType).length > 0 && (
-          <div className="lg:col-span-4 gravity-card p-4 h-full">
-            <h3 className="font-semibold text-sm text-foreground mb-3">Revenus par type</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(stats.revenueByRoomType).map(([type, revenue]) => (
-                <div key={type} className="p-2 bg-muted/30 rounded-lg">
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {roomTypeLabels[type as RoomType] || type}
-                  </p>
-                  <p className="text-sm font-bold text-foreground">
-                    {formatCurrency(revenue)}
-                  </p>
-                </div>
-              ))}
-            </div>
+        {/* Revenue Last 7 Days Chart - Middle */}
+        <div className="lg:col-span-5 gravity-card p-4 h-full">
+          <h3 className="font-semibold text-sm text-foreground mb-3">Revenus des 7 derniers jours</h3>
+          <div className="h-[140px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats.revenueLast7Days} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tickFormatter={(value) => `${value}€`}
+                />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-popover border border-border rounded-lg p-2 shadow-lg">
+                          <p className="text-xs text-muted-foreground">{payload[0].payload.date}</p>
+                          <p className="text-sm font-semibold text-foreground">{formatCurrency(payload[0].value as number)}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2}
+                  fill="url(#revenueGradient)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-        )}
+        </div>
 
         {/* Recent Reservations - Right */}
-        <div className={cn(
-          "gravity-card p-4 h-full",
-          Object.keys(stats.revenueByRoomType).length > 0 ? "lg:col-span-4" : "lg:col-span-8"
-        )}>
+        <div className="lg:col-span-4 gravity-card p-4 h-full">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="font-semibold text-sm text-foreground">Réservations récentes</h3>
               <p className="text-xs text-muted-foreground">{reservations.length} total</p>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground h-7 px-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+              onClick={() => navigate('/reservations')}
+            >
               Voir tout
             </Button>
           </div>
@@ -555,7 +626,12 @@ const Dashboard = () => {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold text-lg text-foreground">Chambres</h3>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate('/chambres')}
+          >
             Voir toutes les chambres
           </Button>
         </div>
@@ -563,7 +639,11 @@ const Dashboard = () => {
         {featuredRooms.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
             {featuredRooms.map((room) => (
-              <div key={room.id} className="room-card">
+              <div 
+                key={room.id} 
+                className="room-card cursor-pointer transition-transform hover:scale-[1.02]"
+                onClick={() => handleRoomClick(room)}
+              >
                 {/* Room Image Placeholder */}
                 <div className="relative h-32 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                   <BedDouble className="w-12 h-12 text-muted-foreground/50" />
@@ -616,10 +696,21 @@ const Dashboard = () => {
                           : "bg-muted text-muted-foreground cursor-not-allowed"
                       )}
                       disabled={room.status !== 'available'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReserveRoom(room);
+                      }}
                     >
                       Réserver
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRoomClick(room);
+                      }}
+                    >
                       Détails
                     </Button>
                   </div>
@@ -637,6 +728,20 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Room Details Dialog */}
+      <RoomDetailsDialog
+        room={selectedRoom}
+        open={showRoomDetails}
+        onOpenChange={setShowRoomDetails}
+      />
+
+      {/* New Reservation Dialog */}
+      <NewReservationDialog
+        open={showNewReservation}
+        onOpenChange={setShowNewReservation}
+        preSelectedRoomId={preSelectedRoomId}
+      />
     </div>
   );
 };
