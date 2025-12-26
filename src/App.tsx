@@ -23,6 +23,7 @@ import Auth from "./pages/Auth";
 import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
+import RegisterPage from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -39,11 +40,15 @@ const App = () => (
                 <Routes>
                   {/* Public routes */}
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/setup" element={
-                    <SetupRoute>
-                      <Setup />
-                    </SetupRoute>
-                  } />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route
+                    path="/setup"
+                    element={
+                      <SetupRoute>
+                        <Setup />
+                      </SetupRoute>
+                    }
+                  />
                   
                   {/* Protected routes */}
                   <Route element={
