@@ -99,51 +99,35 @@ export default function Auth() {
     setIsLoading(false);
   };
 
-  const handleCreateTestAccount = async () => {
+  const DEMO_EMAIL = 'demo@hotelnaka.local';
+  const DEMO_PASSWORD = 'DemoHotel123!';
+
+  const handleUseDemoAccount = async () => {
     setError('');
     setSuccess('');
     setIsCreatingTestAccount(true);
 
-    // Generate unique test email and password
-    const timestamp = Date.now();
-    const testEmail = `test-${timestamp}@demo.hotelmanager.local`;
-    const testPassword = `Test${timestamp}!`;
-    const testName = `Utilisateur Test ${timestamp.toString().slice(-4)}`;
+    // Pré-remplir les champs pour que tu voies bien les identifiants
+    setLoginEmail(DEMO_EMAIL);
+    setLoginPassword(DEMO_PASSWORD);
 
-    try {
-      // Sign up with auto-confirm (requires "Confirm email" to be disabled in Supabase)
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: testEmail,
-        password: testPassword,
-        options: {
-          data: { name: testName },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
+    const result = await login(DEMO_EMAIL, DEMO_PASSWORD);
+
+    if (result.success) {
+      toast({
+        title: 'Connecté avec le compte de démo',
+        description: `Email: ${DEMO_EMAIL} | Mot de passe: ${DEMO_PASSWORD}`,
+        duration: 15000,
       });
-
-      if (signUpError) {
-        throw signUpError;
-      }
-
-      // If session is returned, user is auto-confirmed and logged in
-      if (data.session) {
-        toast({
-          title: 'Compte de test créé',
-          description: `Email: ${testEmail} | Mot de passe: ${testPassword}`,
-          duration: 15000,
-        });
-        navigate('/');
-      } else {
-        // Email confirmation required - show credentials for manual login
-        setSuccess(`Compte créé ! Email: ${testEmail} | Mot de passe: ${testPassword}`);
-        setLoginEmail(testEmail);
-        setLoginPassword(testPassword);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Erreur lors de la création du compte de test');
-    } finally {
-      setIsCreatingTestAccount(false);
+      navigate('/');
+    } else {
+      setError(
+        result.error ||
+          "Le compte de démo n'existe pas encore. Crée-le dans Supabase (Auth > Users) avec ces identifiants, puis réessaie."
+      );
     }
+
+    setIsCreatingTestAccount(false);
   };
 
   return (
@@ -234,18 +218,18 @@ export default function Auth() {
                     type="button"
                     variant="outline"
                     className="w-full gap-2"
-                    onClick={handleCreateTestAccount}
+                    onClick={handleUseDemoAccount}
                     disabled={isCreatingTestAccount || isLoading}
                   >
                     {isCreatingTestAccount ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Création en cours...
+                        Connexion au compte de démo...
                       </>
                     ) : (
                       <>
                         <FlaskConical className="w-4 h-4" />
-                        Créer un compte de test
+                        Utiliser le compte de démo
                       </>
                     )}
                   </Button>
