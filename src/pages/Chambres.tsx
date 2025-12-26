@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
@@ -15,8 +15,11 @@ import {
   User,
   ExternalLink,
   ShoppingCart,
-  CreditCard,
-  Wallet
+  Wallet,
+  Sparkles,
+  Wrench,
+  CheckCircle,
+  Timer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,8 +58,12 @@ const statusFilters: { value: FilterStatus; label: string }[] = [
   { value: 'all', label: 'Toutes' },
   { value: 'available', label: 'Disponibles' },
   { value: 'occupied', label: 'Occupées' },
+  { value: 'cleaning', label: 'Nettoyage' },
   { value: 'maintenance', label: 'Maintenance' },
 ];
+
+// Duration in minutes before cleaning rooms become available
+const CLEANING_DURATION_MINUTES = 30;
 
 const roomTypeLabels: Record<RoomType, string> = {
   single: 'Simple',
@@ -96,8 +103,81 @@ const Chambres = () => {
     type: 'double' as RoomType,
     status: 'available' as RoomStatus,
   });
-  const { rooms, reservations, isLoading, addRoom, refreshData } = useHotel();
+  const { rooms, reservations, isLoading, addRoom, updateRoomStatus, refreshData } = useHotel();
   const { comptes, ajouterConsommation, refreshComptes } = useComptes();
+  
+  // Track cleaning start times
+  const [cleaningTimers, setCleaningTimers] = useState<Record<string, number>>({});
+
+  // Auto-change cleaning rooms to available after CLEANING_DURATION_MINUTES
+  useEffect(() => {
+    const cleaningRooms = rooms.filter(r => r.status === 'cleaning');
+    
+    cleaningRooms.forEach(room => {
+      if (!cleaningTimers[room.id]) {
+        // Set cleaning start time for new cleaning rooms
+        setCleaningTimers(prev => ({ ...prev, [room.id]: Date.now() }));
+      }
+    });
+    
+    // Check every 30 seconds for rooms to change to available
+    const interval = setInterval(() => {
+      const now = Date.now();
+      Object.entries(cleaningTimers).forEach(([roomId, startTime]) => {
+        const room = rooms.find(r => r.id === roomId);
+        if (room?.status === 'cleaning') {
+          const elapsedMinutes = (now - startTime) / 1000 / 60;
+          if (elapsedMinutes >= CLEANING_DURATION_MINUTES) {
+            updateRoomStatus(roomId, 'available');
+            setCleaningTimers(prev => {
+              const updated = { ...prev };
+              delete updated[roomId];
+              return updated;
+            });
+          }
+        } else {
+          // Room is no longer cleaning, remove timer
+          setCleaningTimers(prev => {
+            const updated = { ...prev };
+            delete updated[roomId];
+            return updated;
+          });
+        }
+      });
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [rooms, cleaningTimers, updateRoomStatus]);
+
+  // Get remaining cleaning time
+  const getCleaningTimeRemaining = useCallback((roomId: string): number | null => {
+    const startTime = cleaningTimers[roomId];
+    if (!startTime) return null;
+    const elapsed = (Date.now() - startTime) / 1000 / 60;
+    const remaining = Math.max(0, CLEANING_DURATION_MINUTES - elapsed);
+    return Math.ceil(remaining);
+  }, [cleaningTimers]);
+
+  // Quick status change handlers
+  const handleSetCleaning = async (roomId: string) => {
+    const success = await updateRoomStatus(roomId, 'cleaning');
+    if (success) {
+      setCleaningTimers(prev => ({ ...prev, [roomId]: Date.now() }));
+    }
+  };
+
+  const handleSetMaintenance = async (roomId: string) => {
+    await updateRoomStatus(roomId, 'maintenance');
+  };
+
+  const handleSetAvailable = async (roomId: string) => {
+    await updateRoomStatus(roomId, 'available');
+    setCleaningTimers(prev => {
+      const updated = { ...prev };
+      delete updated[roomId];
+      return updated;
+    });
+  };
   
   // State for consumption/payment dialogs
   const [showConsommation, setShowConsommation] = useState(false);
@@ -143,6 +223,7 @@ const Chambres = () => {
     all: rooms.length,
     available: rooms.filter(r => r.status === 'available').length,
     occupied: rooms.filter(r => r.status === 'occupied').length,
+    cleaning: rooms.filter(r => r.status === 'cleaning').length,
     maintenance: rooms.filter(r => r.status === 'maintenance').length,
   };
 
@@ -434,7 +515,7 @@ const Chambres = () => {
                   )}
                   
                   {/* Amenities */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {room.amenities.slice(0, 4).map((amenity) => {
                       const Icon = amenityIcons[amenity];
                       return (
@@ -448,6 +529,71 @@ const Chambres = () => {
                       );
                     })}
                   </div>
+
+                  {/* Quick Status Actions - Always visible for non-occupied rooms */}
+                  {room.status !== 'occupied' && (
+                    <div className="flex gap-1.5 mb-3">
+                      {room.status === 'cleaning' ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-green-500/30 text-green-600 hover:bg-green-500/10"
+                            onClick={() => handleSetAvailable(room.id)}
+                          >
+                            <CheckCircle className="w-3 h-3" />
+                            Disponible
+                          </Button>
+                          <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-500/10 px-2 rounded">
+                            <Timer className="w-3 h-3" />
+                            {getCleaningTimeRemaining(room.id) || CLEANING_DURATION_MINUTES} min
+                          </div>
+                        </>
+                      ) : room.status === 'maintenance' ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-green-500/30 text-green-600 hover:bg-green-500/10"
+                            onClick={() => handleSetAvailable(room.id)}
+                          >
+                            <CheckCircle className="w-3 h-3" />
+                            Disponible
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                            onClick={() => handleSetCleaning(room.id)}
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            Nettoyage
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                            onClick={() => handleSetCleaning(room.id)}
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            Nettoyage
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 h-7 text-xs gap-1 border-red-500/30 text-red-600 hover:bg-red-500/10"
+                            onClick={() => handleSetMaintenance(room.id)}
+                          >
+                            <Wrench className="w-3 h-3" />
+                            Maintenance
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
                   
                   {/* Actions */}
                   <div className="flex gap-2">
@@ -539,7 +685,70 @@ const Chambres = () => {
                         )}
                       </td>
                       <td>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {room.status !== 'occupied' && (
+                            <>
+                              {room.status === 'cleaning' ? (
+                                <>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                                    onClick={() => handleSetAvailable(room.id)}
+                                  >
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    Dispo
+                                  </Button>
+                                  <span className="text-xs text-amber-600 flex items-center gap-1">
+                                    <Timer className="w-3 h-3" />
+                                    {getCleaningTimeRemaining(room.id) || CLEANING_DURATION_MINUTES}m
+                                  </span>
+                                </>
+                              ) : room.status === 'maintenance' ? (
+                                <>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                                    onClick={() => handleSetAvailable(room.id)}
+                                  >
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    Dispo
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                                    onClick={() => handleSetCleaning(room.id)}
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Nettoyage
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                                    onClick={() => handleSetCleaning(room.id)}
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Nettoyage
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                                    onClick={() => handleSetMaintenance(room.id)}
+                                  >
+                                    <Wrench className="w-3.5 h-3.5" />
+                                    Maint.
+                                  </Button>
+                                </>
+                              )}
+                            </>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="sm"
