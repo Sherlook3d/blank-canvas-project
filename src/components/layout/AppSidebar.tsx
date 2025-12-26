@@ -39,6 +39,7 @@ const navItems = [
   { path: '/utilisateurs', label: 'Utilisateurs', icon: UserCog, roles: ['owner', 'manager'] as UserRole[], helpId: 'parametres' },
   { path: '/statistiques', label: 'Statistiques', icon: BarChart3, roles: ['owner', 'manager'] as UserRole[], helpId: 'statistiques' },
   { path: '/parametres', label: 'Paramètres', icon: Settings, roles: ['owner', 'manager'] as UserRole[], helpId: 'parametres' },
+  { path: '/admin', label: 'Admin SaaS', icon: BarChart3, roles: ['owner'] as UserRole[], helpId: 'admin' },
 ];
 
 interface AppSidebarProps {

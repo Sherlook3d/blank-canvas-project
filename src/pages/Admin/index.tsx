@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { getHotelStats, HotelTenant } from "@/lib/hotel-context";
+import { Button } from "@/components/ui/button";
+import { HotelTenant } from "@/lib/hotel-context";
 
 interface HotelWithStats extends HotelTenant {
   nbRooms?: number;
@@ -34,11 +35,42 @@ export default function AdminDashboard() {
         return;
       }
 
-      // Pour l'instant, on affiche la liste brute sans recalculer les stats pour chaque hôtel
       setHotels(data as HotelWithStats[]);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function updateHotelStatus(id: string, statut: HotelTenant["statut"]) {
+    const { error } = await supabase
+      .from("hotels")
+      .update({ statut })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erreur mise à jour statut hôtel:", error);
+      return;
+    }
+
+    setHotels((prev) => prev.map((h) => (h.id === id ? { ...h, statut } : h)));
+  }
+
+  async function updateHotelPlan(id: string, plan: HotelTenant["plan"]) {
+    const prix_mensuel = plan === "basic" ? 50 : plan === "premium" ? 100 : 200;
+
+    const { error } = await supabase
+      .from("hotels")
+      .update({ plan, prix_mensuel })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erreur mise à jour plan hôtel:", error);
+      return;
+    }
+
+    setHotels((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, plan, prix_mensuel } : h))
+    );
   }
 
   if (loading) {
@@ -66,6 +98,7 @@ export default function AdminDashboard() {
                   <TableHead>Statut</TableHead>
                   <TableHead>Date inscription</TableHead>
                   <TableHead>Prix/mois</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -74,7 +107,20 @@ export default function AdminDashboard() {
                     <TableCell>{hotel.name}</TableCell>
                     <TableCell>{hotel.email}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{hotel.plan}</Badge>
+                      <select
+                        className="border bg-background text-sm rounded px-2 py-1"
+                        value={hotel.plan}
+                        onChange={(e) =>
+                          updateHotelPlan(
+                            hotel.id,
+                            e.target.value as HotelTenant["plan"]
+                          )
+                        }
+                      >
+                        <option value="basic">Basic</option>
+                        <option value="premium">Premium</option>
+                        <option value="enterprise">Enterprise</option>
+                      </select>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -91,10 +137,38 @@ export default function AdminDashboard() {
                     </TableCell>
                     <TableCell>
                       {hotel.date_abonnement
-                        ? new Date(hotel.date_abonnement as unknown as string).toLocaleDateString()
+                        ? new Date(hotel.date_abonnement).toLocaleDateString()
                         : "-"}
                     </TableCell>
                     <TableCell>{Number(hotel.prix_mensuel || 0)}€</TableCell>
+                    <TableCell className="space-x-2">
+                      {hotel.statut !== "suspendu" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateHotelStatus(hotel.id, "suspendu")}
+                        >
+                          Suspendre
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateHotelStatus(hotel.id, "actif")}
+                        >
+                          Activer
+                        </Button>
+                      )}
+                      {hotel.statut === "trial" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateHotelStatus(hotel.id, "actif")}
+                        >
+                          Passer en actif
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
