@@ -37,70 +37,25 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <Routes>
-                  {/* Public routes */}
+                  {/* Routes publiques conservées pour plus tard si besoin */}
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/setup" element={
-                    <SetupRoute>
-                      <Setup />
-                    </SetupRoute>
-                  } />
-                  
-                  {/* Protected routes */}
-                  <Route element={
-                    <ProtectedRoute>
-                      <AppLayout />
-                    </ProtectedRoute>
-                  }>
-                    <Route path="/" element={
-                      <ProtectedRoute pageKey="dashboard">
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/chambres" element={
-                      <ProtectedRoute pageKey="chambres">
-                        <Chambres />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/reservations" element={
-                      <ProtectedRoute pageKey="reservations">
-                        <Reservations />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/comptes" element={
-                      <ProtectedRoute pageKey="comptes">
-                        <Comptes />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/clients" element={
-                      <ProtectedRoute pageKey="clients">
-                        <Clients />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/statistiques" element={
-                      <ProtectedRoute pageKey="statistiques">
-                        <Statistiques />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/finances" element={
-                      <ProtectedRoute pageKey="finances">
-                        <Finances />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/utilisateurs" element={
-                      <ProtectedRoute pageKey="utilisateurs">
-                        <Utilisateurs />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/parametres" element={
-                      <ProtectedRoute pageKey="parametres">
-                        <Parametres />
-                      </ProtectedRoute>
-                    } />
+                  <Route path="/setup" element={<Setup />} />
+
+                  {/* Routes sans protection d'authentification (aperçu direct) */}
+                  <Route element={<AppLayout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/chambres" element={<Chambres />} />
+                    <Route path="/reservations" element={<Reservations />} />
+                    <Route path="/comptes" element={<Comptes />} />
+                    <Route path="/clients" element={<Clients />} />
+                    <Route path="/statistiques" element={<Statistiques />} />
+                    <Route path="/finances" element={<Finances />} />
+                    <Route path="/utilisateurs" element={<Utilisateurs />} />
+                    <Route path="/parametres" element={<Parametres />} />
                   </Route>
-                  
-                  {/* Public contact page */}
+
+                  {/* Page contact publique et 404 */}
                   <Route path="/contact" element={<Contact />} />
-                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
