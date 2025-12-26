@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Hotel,
   LogOut,
-  HelpCircle
+  HelpCircle,
+  Phone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
@@ -86,13 +87,13 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-sidebar-border">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-sidebar-accent">
-          <Hotel className="w-5 h-5 text-sidebar-primary" />
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent">
+          <Hotel className="w-5 h-5 text-white" />
         </div>
         {!collapsed && (
           <div className="animate-fade-in">
             <h1 className="text-base font-semibold text-sidebar-primary">HotelManager</h1>
-            <p className="text-xs text-sidebar-muted">Gestion hôtelière</p>
+            <p className="text-xs text-sidebar-muted">by RStudio</p>
           </div>
         )}
       </div>
@@ -134,6 +135,21 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             <span className="animate-fade-in truncate">Aide</span>
           )}
         </button>
+        
+        {/* Contact RStudio */}
+        <NavLink
+          to="/contact"
+          className={cn(
+            "nav-item text-accent hover:bg-accent/10",
+            collapsed && "justify-center"
+          )}
+          title={collapsed ? "Contact RStudio" : undefined}
+        >
+          <Phone className="w-5 h-5 flex-shrink-0" />
+          {!collapsed && (
+            <span className="animate-fade-in truncate">Contact RStudio</span>
+          )}
+        </NavLink>
       </nav>
 
       {/* Help Panel */}
