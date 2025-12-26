@@ -263,6 +263,10 @@ export const ReservationDetailsDialog = ({ reservation, open, onOpenChange }: Re
                   compteId={reservation.compte_id} 
                   totalPrice={reservation.total_price}
                   acompte={reservation.acompte}
+                  clientName={reservation.client ? `${reservation.client.first_name} ${reservation.client.last_name}` : undefined}
+                  chambreNum={reservation.room?.number}
+                  reservationId={reservation.id}
+                  hotelId={reservation.hotel_id}
                 />
 
                 {/* Notes */}
