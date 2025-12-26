@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { DebtBadge } from '@/components/ui/DebtBadge';
+import { BalanceBadge } from '@/components/ui/BalanceBadge';
 import { useHotel, ReservationStatus, RoomType, Reservation } from '@/contexts/HotelContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { cn } from '@/lib/utils';
@@ -374,10 +375,18 @@ const Reservations = () => {
                         </div>
                       </td>
                       <td>
-                        <div>
+                        <div className="flex items-center gap-2">
                           <p className="font-medium text-foreground">
                             {reservation.room?.type ? roomTypeLabels[reservation.room.type] : ''} {reservation.room?.number || ''}
                           </p>
+                          {compte && compte.solde > 0 && (
+                            <BalanceBadge 
+                              totalPrice={reservation.total_price} 
+                              acompte={reservation.acompte || 0}
+                              soldeCompte={compte.solde}
+                              size="sm"
+                            />
+                          )}
                         </div>
                       </td>
                       <td>

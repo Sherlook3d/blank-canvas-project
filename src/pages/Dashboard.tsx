@@ -28,6 +28,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { DebtBadge } from '@/components/ui/DebtBadge';
+import { BalanceBadge } from '@/components/ui/BalanceBadge';
 import { useHotel, RoomType, Room } from '@/contexts/HotelContext';
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -594,8 +595,15 @@ const Dashboard = () => {
                       </p>
                       <DebtBadge amount={reservation.client?.argent_du || 0} />
                     </div>
-                    <p className="text-[10px] text-muted-foreground truncate">
+                    <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
                       {reservation.room?.type ? roomTypeLabels[reservation.room.type] : ''} {reservation.room?.number}
+                      {reservation.acompte && reservation.acompte > 0 && reservation.acompte < reservation.total_price && (
+                        <BalanceBadge 
+                          totalPrice={reservation.total_price} 
+                          acompte={reservation.acompte}
+                          size="sm"
+                        />
+                      )}
                     </p>
                   </div>
                   

@@ -22,6 +22,7 @@ import Finances from "./pages/Finances";
 import Auth from "./pages/Auth";
 import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +97,9 @@ const App = () => (
                       </ProtectedRoute>
                     } />
                   </Route>
+                  
+                  {/* Public contact page */}
+                  <Route path="/contact" element={<Contact />} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>
