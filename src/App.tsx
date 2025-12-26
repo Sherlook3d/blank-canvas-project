@@ -24,6 +24,7 @@ import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 import RegisterPage from "./pages/Register";
+import AdminDashboard from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -96,11 +97,22 @@ const App = () => (
                         <Utilisateurs />
                       </ProtectedRoute>
                     } />
-                    <Route path="/parametres" element={
-                      <ProtectedRoute pageKey="parametres">
-                        <Parametres />
-                      </ProtectedRoute>
-                    } />
+                    <Route
+                      path="/parametres"
+                      element={
+                        <ProtectedRoute pageKey="parametres">
+                          <Parametres />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute allowedRoles={["owner"]}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
                   </Route>
                   
                   {/* Public contact page */}
