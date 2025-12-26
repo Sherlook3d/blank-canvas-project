@@ -277,29 +277,71 @@ export type Database = {
       hotels: {
         Row: {
           address: string | null
+          couleur_primaire: string | null
           created_at: string
+          date_abonnement: string | null
+          date_fin_abonnement: string | null
           email: string | null
           id: string
+          jours_trial: number
+          logo_url: string | null
+          max_chambres: number
+          max_reservations_mois: number
+          max_utilisateurs: number
+          module_facturation: boolean
+          module_finances: boolean
+          module_statistiques: boolean
           name: string
           phone: string | null
+          plan: string
+          prix_mensuel: number
+          statut: string
           updated_at: string
         }
         Insert: {
           address?: string | null
+          couleur_primaire?: string | null
           created_at?: string
+          date_abonnement?: string | null
+          date_fin_abonnement?: string | null
           email?: string | null
           id?: string
+          jours_trial?: number
+          logo_url?: string | null
+          max_chambres?: number
+          max_reservations_mois?: number
+          max_utilisateurs?: number
+          module_facturation?: boolean
+          module_finances?: boolean
+          module_statistiques?: boolean
           name: string
           phone?: string | null
+          plan?: string
+          prix_mensuel?: number
+          statut?: string
           updated_at?: string
         }
         Update: {
           address?: string | null
+          couleur_primaire?: string | null
           created_at?: string
+          date_abonnement?: string | null
+          date_fin_abonnement?: string | null
           email?: string | null
           id?: string
+          jours_trial?: number
+          logo_url?: string | null
+          max_chambres?: number
+          max_reservations_mois?: number
+          max_utilisateurs?: number
+          module_facturation?: boolean
+          module_finances?: boolean
+          module_statistiques?: boolean
           name?: string
           phone?: string | null
+          plan?: string
+          prix_mensuel?: number
+          statut?: string
           updated_at?: string
         }
         Relationships: []
