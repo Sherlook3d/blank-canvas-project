@@ -438,14 +438,22 @@ const Chambres = () => {
             
             return (
               <div key={room.id} className="room-card">
-                {/* Room Image Placeholder */}
-                <div className="relative h-36 bg-muted flex items-center justify-center">
-                  <BedDouble className="w-14 h-14 text-muted-foreground/40" />
+                {/* Room Visual Header */}
+                <div className="relative h-28 bg-gradient-to-br from-primary/5 via-background to-secondary/5 rounded-t-xl overflow-hidden">
+                  <div className="absolute top-3 left-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-background/80 flex items-center justify-center shadow-sm">
+                      <BedDouble className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground">{roomTypeLabels[room.type]}</span>
+                      <span className="text-sm font-semibold text-foreground">Chambre {room.number}</span>
+                    </div>
+                  </div>
                   <StatusBadge 
                     status={room.status} 
                     className="absolute top-3 right-3"
                   />
-                  <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-foreground/80 rounded text-xs font-medium text-background">
+                  <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-background/90 border border-border/60 rounded text-xs font-medium text-foreground shadow-sm">
                     {formatCurrency(room.price_per_night)}/nuit
                   </div>
                 </div>
