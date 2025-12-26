@@ -435,117 +435,120 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Occupancy Stats - Compact */}
-        <div className="gravity-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm text-foreground">Statut des chambres</h3>
-            <p className="text-lg font-bold text-foreground">{stats.occupancyRate}%</p>
+      {/* Stats Row: Statut + Réservations récentes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Occupancy Stats + Revenus par type - Left side (2/3) */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Occupancy Stats - Compact */}
+          <div className="gravity-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm text-foreground">Statut des chambres</h3>
+              <p className="text-lg font-bold text-foreground">{stats.occupancyRate}%</p>
+            </div>
+            
+            <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
+              <div 
+                className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
+                style={{ width: `${stats.occupancyRate}%` }}
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-center p-2 bg-success/10 rounded-lg">
+                <p className="text-base font-bold text-success">{stats.availableRooms}</p>
+                <p className="text-[10px] text-muted-foreground">Dispo</p>
+              </div>
+              <div className="text-center p-2 bg-accent/10 rounded-lg">
+                <p className="text-base font-bold text-accent">{stats.occupiedRooms}</p>
+                <p className="text-[10px] text-muted-foreground">Occupé</p>
+              </div>
+              <div className="text-center p-2 bg-warning/10 rounded-lg">
+                <p className="text-base font-bold text-warning">{stats.maintenanceRooms}</p>
+                <p className="text-[10px] text-muted-foreground">Maint.</p>
+              </div>
+              <div className="text-center p-2 bg-info/10 rounded-lg">
+                <p className="text-base font-bold text-info">{stats.cleaningRooms}</p>
+                <p className="text-[10px] text-muted-foreground">Nett.</p>
+              </div>
+            </div>
           </div>
-          
-          <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
-            <div 
-              className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
-              style={{ width: `${stats.occupancyRate}%` }}
-            />
-          </div>
-          
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-center p-2 bg-success/10 rounded-lg">
-              <p className="text-base font-bold text-success">{stats.availableRooms}</p>
-              <p className="text-[10px] text-muted-foreground">Dispo</p>
+
+          {/* Revenue by Room Type - Compact */}
+          {Object.keys(stats.revenueByRoomType).length > 0 && (
+            <div className="gravity-card p-4">
+              <h3 className="font-semibold text-sm text-foreground mb-3">Revenus par type</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {Object.entries(stats.revenueByRoomType).map(([type, revenue]) => (
+                  <div key={type} className="p-2 bg-muted/30 rounded-lg">
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {roomTypeLabels[type as RoomType] || type}
+                    </p>
+                    <p className="text-sm font-bold text-foreground">
+                      {formatCurrency(revenue)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="text-center p-2 bg-accent/10 rounded-lg">
-              <p className="text-base font-bold text-accent">{stats.occupiedRooms}</p>
-              <p className="text-[10px] text-muted-foreground">Occupé</p>
-            </div>
-            <div className="text-center p-2 bg-warning/10 rounded-lg">
-              <p className="text-base font-bold text-warning">{stats.maintenanceRooms}</p>
-              <p className="text-[10px] text-muted-foreground">Maint.</p>
-            </div>
-            <div className="text-center p-2 bg-info/10 rounded-lg">
-              <p className="text-base font-bold text-info">{stats.cleaningRooms}</p>
-              <p className="text-[10px] text-muted-foreground">Nett.</p>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Revenue by Room Type - Compact */}
-        {Object.keys(stats.revenueByRoomType).length > 0 && (
-          <div className="gravity-card p-4">
-            <h3 className="font-semibold text-sm text-foreground mb-3">Revenus par type</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(stats.revenueByRoomType).map(([type, revenue]) => (
-                <div key={type} className="p-2 bg-muted/30 rounded-lg">
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {roomTypeLabels[type as RoomType] || type}
-                  </p>
-                  <p className="text-sm font-bold text-foreground">
-                    {formatCurrency(revenue)}
-                  </p>
+        {/* Recent Reservations - Right side (1/3) */}
+        <div className="gravity-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-semibold text-sm text-foreground">Réservations récentes</h3>
+              <p className="text-xs text-muted-foreground">{reservations.length} total</p>
+            </div>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground h-7 px-2">
+              Voir tout
+            </Button>
+          </div>
+          
+          {recentReservations.length > 0 ? (
+            <div className="space-y-1.5">
+              {recentReservations.map((reservation) => (
+                <div 
+                  key={reservation.id} 
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-[10px] font-medium text-white flex-shrink-0">
+                    {reservation.client?.first_name?.[0]}{reservation.client?.last_name?.[0]}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <p className="text-xs font-medium text-foreground truncate">
+                        {reservation.client?.first_name} {reservation.client?.last_name}
+                      </p>
+                      <DebtBadge amount={reservation.client?.argent_du || 0} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {reservation.room?.type ? roomTypeLabels[reservation.room.type] : ''} {reservation.room?.number}
+                    </p>
+                  </div>
+                  
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-[10px] font-medium text-foreground">
+                      {formatCurrency(reservation.total_price)}
+                    </p>
+                    <div className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
+                      <Calendar className="w-2 h-2" />
+                      <span>{formatDate(reservation.check_in)}</span>
+                    </div>
+                  </div>
+                  
+                  <StatusBadge status={reservation.status} className="text-[9px] px-1.5 py-0.5" />
                 </div>
               ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Recent Reservations */}
-      <div className="gravity-card">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-foreground">Réservations récentes</h3>
-            <p className="text-sm text-muted-foreground">{reservations.length} total</p>
-          </div>
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-            Voir tout
-          </Button>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <CalendarCheck className="w-8 h-8 text-muted-foreground/50 mb-2" />
+              <p className="text-xs text-muted-foreground">Aucune réservation récente</p>
+            </div>
+          )}
         </div>
-        
-        {recentReservations.length > 0 ? (
-          <div className="space-y-2">
-            {recentReservations.map((reservation) => (
-              <div 
-                key={reservation.id} 
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-medium text-white">
-                  {reservation.client?.first_name?.[0]}{reservation.client?.last_name?.[0]}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {reservation.client?.first_name} {reservation.client?.last_name}
-                    </p>
-                    <DebtBadge amount={reservation.client?.argent_du || 0} />
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {reservation.room?.type ? roomTypeLabels[reservation.room.type] : ''} {reservation.room?.number}
-                  </p>
-                </div>
-                
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs font-medium text-foreground">
-                    {formatCurrency(reservation.total_price)}
-                  </p>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <Calendar className="w-2.5 h-2.5" />
-                    <span>{formatDate(reservation.check_in)}</span>
-                  </div>
-                </div>
-                
-                <StatusBadge status={reservation.status} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <CalendarCheck className="w-10 h-10 text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground">Aucune réservation récente</p>
-          </div>
-        )}
       </div>
 
       {/* Featured Rooms */}
