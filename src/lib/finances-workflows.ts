@@ -251,48 +251,57 @@ export async function getImpayes(): Promise<{
       id,
       solde,
       date_ouverture,
-      client:clients(id, first_name, last_name, phone, email),
-      reservation:reservations(room:rooms(number))
+      client_id,
+      clients!comptes_clients_client_id_fkey(id, first_name, last_name, phone, email),
+      reservation_id,
+      reservations!comptes_clients_reservation_id_fkey(room_id, rooms!reservations_room_id_fkey(number))
     `)
     .gt('solde', 0)
     .order('date_ouverture', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching impayes:', error);
+    throw error;
+  }
 
   // Get relances count for each compte
   const compteIds = (data || []).map(c => c.id);
-  const { data: relances } = await supabase
-    .from('relances_impayees')
-    .select('compte_client_id, date_relance')
-    .in('compte_client_id', compteIds);
+  let relancesMap: Record<string, { count: number; last: string | null }> = {};
+  
+  if (compteIds.length > 0) {
+    const { data: relances } = await supabase
+      .from('relances_impayees')
+      .select('compte_client_id, date_relance')
+      .in('compte_client_id', compteIds);
 
-  const relancesMap: Record<string, { count: number; last: string | null }> = {};
-  (relances || []).forEach(r => {
-    if (!relancesMap[r.compte_client_id]) {
-      relancesMap[r.compte_client_id] = { count: 0, last: null };
-    }
-    relancesMap[r.compte_client_id].count++;
-    if (!relancesMap[r.compte_client_id].last || r.date_relance > relancesMap[r.compte_client_id].last!) {
-      relancesMap[r.compte_client_id].last = r.date_relance;
-    }
-  });
+    (relances || []).forEach(r => {
+      if (!relancesMap[r.compte_client_id]) {
+        relancesMap[r.compte_client_id] = { count: 0, last: null };
+      }
+      relancesMap[r.compte_client_id].count++;
+      if (!relancesMap[r.compte_client_id].last || r.date_relance > relancesMap[r.compte_client_id].last!) {
+        relancesMap[r.compte_client_id].last = r.date_relance;
+      }
+    });
+  }
 
   const liste: Impaye[] = (data || []).map(compte => {
-    const client = compte.client as any;
-    const reservation = compte.reservation as any;
+    const client = (compte as any).clients;
+    const reservation = (compte as any).reservations;
+    const room = reservation?.rooms;
     const dateOuverture = new Date(compte.date_ouverture || new Date());
     const joursDepuis = Math.floor((Date.now() - dateOuverture.getTime()) / (1000 * 60 * 60 * 24));
     
     return {
       compte_id: compte.id,
-      client_id: client?.id || '',
+      client_id: client?.id || compte.client_id || '',
       nom: client?.last_name || '',
       prenom: client?.first_name || '',
       montant_du: compte.solde || 0,
       jours_dette: joursDepuis,
       nb_relances: relancesMap[compte.id]?.count || 0,
       derniere_relance: relancesMap[compte.id]?.last || undefined,
-      numero_chambre: reservation?.room?.number || undefined,
+      numero_chambre: room?.number || undefined,
       telephone: client?.phone || undefined,
       email: client?.email || undefined,
     };
