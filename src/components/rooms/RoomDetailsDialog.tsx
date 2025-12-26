@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Room, RoomType, RoomStatus, useHotel, Client, Reservation } from '@/contexts/HotelContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface RoomDetailsDialogProps {
   room: Room | null;
@@ -52,12 +53,9 @@ const amenityIcons: Record<string, React.ElementType> = {
   'Baignoire': Bath,
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
-};
-
 export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialogProps) => {
   const { reservations, updateRoom, deleteRoom } = useHotel();
+  const { formatCurrency } = useCurrency();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
