@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          action: string
+          action_label: string | null
+          admin_email: string
+          admin_name: string | null
+          admin_user_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown
+          target_hotel_id: string | null
+          target_hotel_name: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          action_label?: string | null
+          admin_email: string
+          admin_name?: string | null
+          admin_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          target_hotel_id?: string | null
+          target_hotel_name?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          action_label?: string | null
+          admin_email?: string
+          admin_name?: string | null
+          admin_user_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          target_hotel_id?: string | null
+          target_hotel_name?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_logs_target_hotel_id_fkey"
+            columns: ["target_hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_users: {
+        Row: {
+          actif: boolean | null
+          can_create_hotels: boolean | null
+          can_delete_hotels: boolean | null
+          can_impersonate: boolean | null
+          can_view_finances: boolean | null
+          created_at: string | null
+          derniere_connexion: string | null
+          email: string
+          id: string
+          nom: string | null
+          prenom: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actif?: boolean | null
+          can_create_hotels?: boolean | null
+          can_delete_hotels?: boolean | null
+          can_impersonate?: boolean | null
+          can_view_finances?: boolean | null
+          created_at?: string | null
+          derniere_connexion?: string | null
+          email: string
+          id?: string
+          nom?: string | null
+          prenom?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actif?: boolean | null
+          can_create_hotels?: boolean | null
+          can_delete_hotels?: boolean | null
+          can_impersonate?: boolean | null
+          can_view_finances?: boolean | null
+          created_at?: string | null
+          derniere_connexion?: string | null
+          email?: string
+          id?: string
+          nom?: string | null
+          prenom?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories_depenses: {
         Row: {
           actif: boolean | null
