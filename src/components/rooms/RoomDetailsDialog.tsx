@@ -53,8 +53,11 @@ const amenityIcons: Record<string, React.ElementType> = {
   '1 Lit (1 place)': BedDouble,
   Ventilateur: Wind,
   Climatiseur: Wind,
+  Climatisation: Wind,
   WiFi: Wifi,
+  'Wi-Fi': Wifi,
   'TV Canal+': Wine,
+  TV: Wine,
   'Eau chaude': Bath,
 };
 

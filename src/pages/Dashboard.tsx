@@ -47,10 +47,15 @@ const roomTypeLabels: Record<RoomType, string> = {
 };
 
 const amenityIcons: Record<string, React.ElementType> = {
+  WiFi: Wifi,
   'Wi-Fi': Wifi,
-  'Climatisation': Wind,
-  'Minibar': Wine,
-  'Baignoire': Bath,
+  'TV Canal+': Wine,
+  TV: Wine,
+  Climatisation: Wind,
+  Climatiseur: Wind,
+  'Eau chaude': Bath,
+  Minibar: Wine,
+  Baignoire: Bath,
 };
 
 const formatDate = (dateStr: string) => {
