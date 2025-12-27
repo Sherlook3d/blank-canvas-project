@@ -297,6 +297,7 @@ const Chambres = () => {
         room={selectedRoom}
         open={showRoomDetails}
         onOpenChange={handleRoomDetailsClose}
+        startInEdit={true}
       />
 
       {/* New Reservation Dialog */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BedDouble, Users, Wifi, Wind, Wine, Bath, Edit2, Trash2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ interface RoomDetailsDialogProps {
   room: Room | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  startInEdit?: boolean;
 }
 
 const roomTypeLabels: Record<RoomType, string> = {
@@ -57,10 +58,10 @@ const amenityIcons: Record<string, React.ElementType> = {
   'Eau chaude': Bath,
 };
 
-export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialogProps) => {
+export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = false }: RoomDetailsDialogProps) => {
   const { reservations, updateRoom, deleteRoom } = useHotel();
   const { formatCurrency } = useCurrency();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startInEdit);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editData, setEditData] = useState({
@@ -94,6 +95,12 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
     });
     setIsEditing(true);
   };
+
+  useEffect(() => {
+    if (open && room && startInEdit) {
+      handleEdit();
+    }
+  }, [open, room, startInEdit]);
 
   const handleSave = async () => {
     setIsSubmitting(true);
