@@ -75,15 +75,8 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
     amenities: [] as string[],
   });
 
-  const activeReservation = room
-    ? reservations.find(
-        r => r.room_id === room.id && r.status === 'checked_in' && r.client
-      )
-    : undefined;
-
-  if (!room) return null;
-
   const handleEdit = () => {
+    if (!room) return;
     setEditData({
       number: room.number,
       type: room.type,
@@ -102,6 +95,12 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
       handleEdit();
     }
   }, [open, room, startInEdit]);
+
+  if (!room) return null;
+
+  const activeReservation = reservations.find(
+    r => r.room_id === room.id && r.status === 'checked_in' && r.client
+  );
 
   const handleSave = async () => {
     setIsSubmitting(true);
