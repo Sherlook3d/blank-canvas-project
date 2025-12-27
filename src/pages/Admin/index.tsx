@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { HotelTenant } from "@/lib/hotel-context";
-import { isAdmin } from "@/lib/admin-helpers";
+import { isAdmin, logAdminAction } from "@/lib/admin-helpers";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -190,26 +190,64 @@ export default function AdminDashboard() {
       title: "Hôtel créé",
       description: "Le nouvel hôtel a été ajouté au dashboard.",
     });
+
+    void logAdminAction({
+      action: "hotel.create",
+      actionLabel: "Création d'un hôtel",
+      targetHotelId: (data as { id: string }).id,
+      targetHotelName: (data as { name?: string }).name ?? parsed.data.name,
+      details: {
+        plan: parsed.data.plan,
+        prix_mensuel,
+        email: parsed.data.email || null,
+      },
+    });
   }
 
   async function handleConfirmPlanChange() {
     if (!selectedHotel) return;
+    const previousPlan = selectedHotel.plan;
     await updateHotelPlan(selectedHotel.id, planDraft);
     toast({
       title: "Plan mis à jour",
       description: `Le plan de ${selectedHotel.name} est maintenant ${planDraft}.`,
     });
+
+    void logAdminAction({
+      action: "hotel.plan_change",
+      actionLabel: "Changement de plan de l'hôtel",
+      targetHotelId: selectedHotel.id,
+      targetHotelName: selectedHotel.name,
+      details: {
+        from_plan: previousPlan,
+        to_plan: planDraft,
+      },
+    });
+
     setPlanDialogOpen(false);
     setSelectedHotel(null);
   }
 
   async function handleConfirmStatusChange() {
     if (!pendingStatusHotel || !pendingStatus) return;
+    const previousStatus = pendingStatusHotel.statut;
     await updateHotelStatus(pendingStatusHotel.id, pendingStatus);
     toast({
       title: pendingStatus === "suspendu" ? "Hôtel suspendu" : "Hôtel réactivé",
       description: `${pendingStatusHotel.name} est maintenant ${pendingStatus}.`,
     });
+
+    void logAdminAction({
+      action: "hotel.status_change",
+      actionLabel: "Changement de statut de l'hôtel",
+      targetHotelId: pendingStatusHotel.id,
+      targetHotelName: pendingStatusHotel.name,
+      details: {
+        from_status: previousStatus,
+        to_status: pendingStatus,
+      },
+    });
+
     setStatusDialogOpen(false);
     setPendingStatus(null);
     setPendingStatusHotel(null);
