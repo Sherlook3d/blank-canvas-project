@@ -266,9 +266,14 @@ export default function AdminDashboard() {
       <Card className="shadow-card">
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle>Dashboard Admin - Tous les hôtels clients</CardTitle>
-          <Button size="sm" onClick={() => setAddDialogOpen(true)}>
-            + Ajouter un hôtel
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/admins")}>
+              Administration des admins
+            </Button>
+            <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+              + Ajouter un hôtel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
