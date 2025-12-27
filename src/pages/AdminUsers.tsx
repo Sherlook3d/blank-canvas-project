@@ -1,21 +1,66 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { isAdmin } from "@/lib/admin-helpers";
 import type { Tables } from "@/integrations/supabase/types";
 
 type AdminUser = Tables<"admin_users">;
 
+const adminFormSchema = z.object({
+  user_id: z
+    .string()
+    .trim()
+    .uuid({ message: "ID utilisateur (UUID) invalide" }),
+  email: z
+    .string()
+    .trim()
+    .email({ message: "Email invalide" })
+    .max(255, { message: "Email trop long" }),
+  prenom: z
+    .string()
+    .trim()
+    .max(120, { message: "Prénom trop long" })
+    .optional()
+    .or(z.literal("")),
+  nom: z
+    .string()
+    .trim()
+    .max(120, { message: "Nom trop long" })
+    .optional()
+    .or(z.literal("")),
+  role: z
+    .string()
+    .trim()
+    .max(50, { message: "Rôle trop long" })
+    .default("admin"),
+  actif: z.boolean().default(true),
+  can_view_finances: z.boolean().default(true),
+  can_create_hotels: z.boolean().default(true),
+  can_delete_hotels: z.boolean().default(false),
+  can_impersonate: z.boolean().default(false),
+});
+
+type AdminFormValues = z.infer<typeof adminFormSchema>;
+
 export default function AdminUsersPage() {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+  const [formValues, setFormValues] = useState<AdminFormValues | null>(null);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -95,6 +140,151 @@ export default function AdminUsersPage() {
     });
   }
 
+  function openCreateDialog() {
+    setEditingAdmin(null);
+    setFormValues({
+      user_id: "",
+      email: "",
+      prenom: "",
+      nom: "",
+      role: "admin",
+      actif: true,
+      can_view_finances: true,
+      can_create_hotels: true,
+      can_delete_hotels: false,
+      can_impersonate: false,
+    });
+    setFormDialogOpen(true);
+  }
+
+  function openEditDialog(admin: AdminUser) {
+    setEditingAdmin(admin);
+    setFormValues({
+      user_id: admin.user_id,
+      email: admin.email,
+      prenom: admin.prenom ?? "",
+      nom: admin.nom ?? "",
+      role: admin.role ?? "admin",
+      actif: admin.actif ?? true,
+      can_view_finances: admin.can_view_finances ?? true,
+      can_create_hotels: admin.can_create_hotels ?? true,
+      can_delete_hotels: admin.can_delete_hotels ?? false,
+      can_impersonate: admin.can_impersonate ?? false,
+    });
+    setFormDialogOpen(true);
+  }
+
+  async function handleSubmitForm() {
+    if (!formValues) return;
+
+    const parsed = adminFormSchema.safeParse(formValues);
+
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? "Données invalides";
+      toast({
+        title: "Formulaire incomplet",
+        description: msg,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFormSubmitting(true);
+
+    try {
+      if (editingAdmin) {
+        const { error } = await supabase
+          .from("admin_users")
+          .update({
+            email: parsed.data.email,
+            prenom: parsed.data.prenom || null,
+            nom: parsed.data.nom || null,
+            role: parsed.data.role || "admin",
+            actif: parsed.data.actif,
+            can_view_finances: parsed.data.can_view_finances,
+            can_create_hotels: parsed.data.can_create_hotels,
+            can_delete_hotels: parsed.data.can_delete_hotels,
+            can_impersonate: parsed.data.can_impersonate,
+          })
+          .eq("id", editingAdmin.id);
+
+        if (error) {
+          console.error("Erreur mise à jour admin_user:", error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de mettre à jour l'administrateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setAdmins((prev) =>
+          prev.map((a) =>
+            a.id === editingAdmin.id
+              ? {
+                  ...a,
+                  email: parsed.data.email,
+                  prenom: parsed.data.prenom || null,
+                  nom: parsed.data.nom || null,
+                  role: parsed.data.role || "admin",
+                  actif: parsed.data.actif,
+                  can_view_finances: parsed.data.can_view_finances,
+                  can_create_hotels: parsed.data.can_create_hotels,
+                  can_delete_hotels: parsed.data.can_delete_hotels,
+                  can_impersonate: parsed.data.can_impersonate,
+                }
+              : a
+          )
+        );
+
+        toast({
+          title: "Administrateur mis à jour",
+          description: `${parsed.data.email} a été mis à jour.`,
+        });
+      } else {
+        const { data, error } = await supabase
+          .from("admin_users")
+          .insert({
+            user_id: parsed.data.user_id,
+            email: parsed.data.email,
+            prenom: parsed.data.prenom || null,
+            nom: parsed.data.nom || null,
+            role: parsed.data.role || "admin",
+            actif: parsed.data.actif,
+            can_view_finances: parsed.data.can_view_finances,
+            can_create_hotels: parsed.data.can_create_hotels,
+            can_delete_hotels: parsed.data.can_delete_hotels,
+            can_impersonate: parsed.data.can_impersonate,
+          })
+          .select("*")
+          .single();
+
+        if (error) {
+          console.error("Erreur création admin_user:", error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de créer l'administrateur.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setAdmins((prev) => [data as AdminUser, ...prev]);
+
+        toast({
+          title: "Administrateur créé",
+          description: `${parsed.data.email} a été ajouté comme admin.`,
+        });
+      }
+
+      setFormDialogOpen(false);
+      setEditingAdmin(null);
+      setFormValues(null);
+    } finally {
+      setFormSubmitting(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
@@ -110,12 +300,17 @@ export default function AdminUsersPage() {
           <div>
             <CardTitle>Administration des admins SaaS</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Gère l'activation ou la suspension des comptes administrateurs de la plateforme.
+              Gère l'activation, la suspension et la configuration des comptes administrateurs de la plateforme.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
-            Retour au dashboard admin
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+              Retour au dashboard admin
+            </Button>
+            <Button size="sm" onClick={openCreateDialog}>
+              + Nouvel admin
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -171,14 +366,23 @@ export default function AdminUsersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-3">
-                        <span className="text-xs text-muted-foreground">
-                          {admin.actif ? "Actif" : "Suspendu"}
-                        </span>
-                        <Switch
-                          checked={!!admin.actif}
-                          disabled={updatingId === admin.id}
-                          onCheckedChange={() => void toggleActive(admin)}
-                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(admin)}
+                        >
+                          Éditer
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {admin.actif ? "Actif" : "Suspendu"}
+                          </span>
+                          <Switch
+                            checked={!!admin.actif}
+                            disabled={updatingId === admin.id}
+                            onCheckedChange={() => void toggleActive(admin)}
+                          />
+                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -195,6 +399,198 @@ export default function AdminUsersPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingAdmin ? "Modifier un administrateur" : "Créer un nouvel administrateur"}
+            </DialogTitle>
+            <DialogDescription>
+              Renseigne les informations de l'administrateur. L'ID utilisateur doit correspondre à l'UUID de
+              l'utilisateur dans Supabase Auth.
+            </DialogDescription>
+          </DialogHeader>
+
+          {formValues && (
+            <div className="space-y-4 py-2">
+              {!editingAdmin && (
+                <div className="space-y-2">
+                  <Label htmlFor="user-id">ID utilisateur (UUID)</Label>
+                  <Input
+                    id="user-id"
+                    value={formValues.user_id}
+                    onChange={(e) =>
+                      setFormValues({
+                        ...formValues,
+                        user_id: e.target.value.trim(),
+                      })
+                    }
+                    placeholder="Copie l'UUID depuis Auth &gt; Users"
+                  />
+                </div>
+              )}
+              {editingAdmin && (
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">ID utilisateur</span>
+                  <div className="rounded-md border border-border bg-muted px-3 py-2 text-xs break-all">
+                    {editingAdmin.user_id}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Email</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  value={formValues.email}
+                  onChange={(e) =>
+                    setFormValues({
+                      ...formValues,
+                      email: e.target.value.trim(),
+                    })
+                  }
+                  placeholder="admin@hotel.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-prenom">Prénom</Label>
+                  <Input
+                    id="admin-prenom"
+                    value={formValues.prenom ?? ""}
+                    onChange={(e) =>
+                      setFormValues({
+                        ...formValues,
+                        prenom: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-nom">Nom</Label>
+                  <Input
+                    id="admin-nom"
+                    value={formValues.nom ?? ""}
+                    onChange={(e) =>
+                      setFormValues({
+                        ...formValues,
+                        nom: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-role">Rôle (libre)</Label>
+                <Input
+                  id="admin-role"
+                  value={formValues.role}
+                  onChange={(e) =>
+                    setFormValues({
+                      ...formValues,
+                      role: e.target.value.trim(),
+                    })
+                  }
+                  placeholder="admin, support, super_admin..."
+                />
+              </div>
+
+              <div className="space-y-3">
+                <span className="text-sm font-medium text-foreground">Permissions</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2">
+                    <span>Actif</span>
+                    <Switch
+                      checked={formValues.actif}
+                      onCheckedChange={(checked) =>
+                        setFormValues({
+                          ...formValues,
+                          actif: checked,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2">
+                    <span>Peut voir les finances</span>
+                    <Switch
+                      checked={formValues.can_view_finances}
+                      onCheckedChange={(checked) =>
+                        setFormValues({
+                          ...formValues,
+                          can_view_finances: checked,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2">
+                    <span>Peut créer des hôtels</span>
+                    <Switch
+                      checked={formValues.can_create_hotels}
+                      onCheckedChange={(checked) =>
+                        setFormValues({
+                          ...formValues,
+                          can_create_hotels: checked,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2">
+                    <span>Peut supprimer des hôtels</span>
+                    <Switch
+                      checked={formValues.can_delete_hotels}
+                      onCheckedChange={(checked) =>
+                        setFormValues({
+                          ...formValues,
+                          can_delete_hotels: checked,
+                        })
+                      }
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 md:col-span-2">
+                    <span>Peut s'identifier à la place d'un utilisateur (impersonation)</span>
+                    <Switch
+                      checked={formValues.can_impersonate}
+                      onCheckedChange={(checked) =>
+                        setFormValues({
+                          ...formValues,
+                          can_impersonate: checked,
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (formSubmitting) return;
+                setFormDialogOpen(false);
+                setEditingAdmin(null);
+                setFormValues(null);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button onClick={() => void handleSubmitForm()} disabled={formSubmitting || !formValues}>
+              {formSubmitting
+                ? editingAdmin
+                  ? "Enregistrement..."
+                  : "Création..."
+                : editingAdmin
+                  ? "Enregistrer"
+                  : "Créer l'administrateur"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
