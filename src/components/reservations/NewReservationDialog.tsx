@@ -43,6 +43,7 @@ const roomTypeLabels: Record<RoomType, string> = {
   double: 'Double',
   suite: 'Suite',
   family: 'Familiale',
+  bungalow: 'Bungalow',
 };
 
 export function NewReservationDialog({ open, onOpenChange, preSelectedRoomId }: NewReservationDialogProps) {

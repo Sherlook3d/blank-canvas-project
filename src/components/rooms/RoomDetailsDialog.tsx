@@ -44,13 +44,17 @@ const roomTypeLabels: Record<RoomType, string> = {
   double: 'Double',
   suite: 'Suite',
   family: 'Familiale',
+  bungalow: 'Bungalow',
 };
 
 const amenityIcons: Record<string, React.ElementType> = {
-  'Wi-Fi': Wifi,
-  'Climatisation': Wind,
-  'Minibar': Wine,
-  'Baignoire': Bath,
+  '1 Lit (2 places)': BedDouble,
+  '1 Lit (1 place)': BedDouble,
+  Ventilateur: Wind,
+  Climatiseur: Wind,
+  WiFi: Wifi,
+  'TV Canal+': Wine,
+  'Eau chaude': Bath,
 };
 
 export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialogProps) => {
@@ -67,6 +71,7 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
     price_per_night: 0,
     status: 'available' as RoomStatus,
     description: '',
+    amenities: [] as string[],
   });
 
   if (!room) return null;
@@ -85,6 +90,7 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
       price_per_night: room.price_per_night,
       status: room.status,
       description: room.description || '',
+      amenities: room.amenities || [],
     });
     setIsEditing(true);
   };
@@ -99,6 +105,7 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
       price_per_night: editData.price_per_night,
       status: editData.status,
       description: editData.description || null,
+      amenities: editData.amenities,
     });
     setIsSubmitting(false);
     if (success) {
@@ -169,15 +176,16 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="single">Simple</SelectItem>
-                      <SelectItem value="double">Double</SelectItem>
+                      <SelectItem value="bungalow">Bungalow</SelectItem>
                       <SelectItem value="suite">Suite</SelectItem>
                       <SelectItem value="family">Familiale</SelectItem>
+                      <SelectItem value="single">Simple</SelectItem>
+                      <SelectItem value="double">Double</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit_capacity">Capacité</Label>
+                  <Label htmlFor="edit_capacity">Capacité (personnes)</Label>
                   <Input
                     id="edit_capacity"
                     type="number"
@@ -188,7 +196,7 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit_price">Prix/nuit</Label>
+                  <Label htmlFor="edit_price">Prix/nuit (Ar)</Label>
                   <Input
                     id="edit_price"
                     type="number"
@@ -209,6 +217,54 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
                       <SelectItem value="cleaning">Nettoyage</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Lit</Label>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {['1 Lit (2 places)', '1 Lit (1 place)'].map((amenity) => (
+                    <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-border bg-background"
+                        checked={editData.amenities.includes(amenity)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setEditData((prev) => ({
+                            ...prev,
+                            amenities: checked
+                              ? [...prev.amenities, amenity]
+                              : prev.amenities.filter((a) => a !== amenity),
+                          }));
+                        }}
+                      />
+                      <span>{amenity}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Options</Label>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {['Ventilateur', 'Climatiseur', 'WiFi', 'TV Canal+', 'Eau chaude'].map((amenity) => (
+                    <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-border bg-background"
+                        checked={editData.amenities.includes(amenity)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setEditData((prev) => ({
+                            ...prev,
+                            amenities: checked
+                              ? [...prev.amenities, amenity]
+                              : prev.amenities.filter((a) => a !== amenity),
+                          }));
+                        }}
+                      />
+                      <span>{amenity}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
               <div className="grid gap-2">
@@ -239,11 +295,11 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
               {/* Amenities */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-foreground">Équipements</h4>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-sm">
                   {room.amenities.map((amenity) => {
                     const Icon = amenityIcons[amenity];
                     return (
-                      <div key={amenity} className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded text-sm">
+                      <div key={amenity} className="flex items-center gap-1.5 px-1 py-0.5 rounded">
                         {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
                         <span>{amenity}</span>
                       </div>

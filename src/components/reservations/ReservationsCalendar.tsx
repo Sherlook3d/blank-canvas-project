@@ -34,6 +34,7 @@ const roomTypeLabels: Record<RoomType, string> = {
   double: 'Double',
   suite: 'Suite',
   family: 'Familiale',
+  bungalow: 'Bungalow',
 };
 
 const statusColors: Record<string, string> = {

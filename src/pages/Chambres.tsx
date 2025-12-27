@@ -70,6 +70,7 @@ const roomTypeLabels: Record<RoomType, string> = {
   double: 'Double',
   suite: 'Suite',
   family: 'Familiale',
+  bungalow: 'Bungalow',
 };
 
 const roomTypePrices: Record<RoomType, number> = {
@@ -77,13 +78,17 @@ const roomTypePrices: Record<RoomType, number> = {
   double: 120000,
   suite: 200000,
   family: 180000,
+  bungalow: 20000,
 };
 
 const amenityIcons: Record<string, React.ElementType> = {
-  'Wi-Fi': Wifi,
-  'Climatisation': Wind,
-  'Minibar': Wine,
-  'Baignoire': Bath,
+  '1 Lit (2 places)': BedDouble,
+  '1 Lit (1 place)': BedDouble,
+  Ventilateur: Wind,
+  'Climatiseur': Wind,
+  'WiFi': Wifi,
+  'TV Canal+': Wine,
+  'Eau chaude': Bath,
 };
 
 const Chambres = () => {
