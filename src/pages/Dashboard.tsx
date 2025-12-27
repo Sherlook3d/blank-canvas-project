@@ -48,14 +48,13 @@ const roomTypeLabels: Record<RoomType, string> = {
 
 const amenityIcons: Record<string, React.ElementType> = {
   WiFi: Wifi,
-  'Wi-Fi': Wifi,
   'TV Canal+': Wine,
-  TV: Wine,
   Climatisation: Wind,
-  Climatiseur: Wind,
   'Eau chaude': Bath,
   Minibar: Wine,
-  Baignoire: Bath,
+  Balcon: Wine,
+  Jacuzzi: Bath,
+  'Vue mer': Wifi,
 };
 
 const formatDate = (dateStr: string) => {
@@ -86,13 +85,13 @@ const Dashboard = () => {
     try {
       // Create demo rooms
       const roomsData = [
-        { hotel_id: hotel.id, number: '101', type: 'single', capacity: 1, price_per_night: 65, floor: 1, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation'] },
-        { hotel_id: hotel.id, number: '102', type: 'single', capacity: 1, price_per_night: 65, floor: 1, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation'] },
-        { hotel_id: hotel.id, number: '103', type: 'double', capacity: 2, price_per_night: 95, floor: 1, status: 'maintenance', amenities: ['WiFi', 'TV', 'Climatisation'] },
-        { hotel_id: hotel.id, number: '201', type: 'double', capacity: 2, price_per_night: 95, floor: 2, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar'] },
-        { hotel_id: hotel.id, number: '202', type: 'family', capacity: 4, price_per_night: 150, floor: 2, status: 'occupied', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar'] },
-        { hotel_id: hotel.id, number: '301', type: 'suite', capacity: 2, price_per_night: 200, floor: 3, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer'] },
-        { hotel_id: hotel.id, number: '302', type: 'suite', capacity: 2, price_per_night: 250, floor: 3, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer', 'Balcon'] },
+        { hotel_id: hotel.id, number: '101', type: 'single', capacity: 1, price_per_night: 65, floor: 1, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Climatisation'] },
+        { hotel_id: hotel.id, number: '102', type: 'single', capacity: 1, price_per_night: 65, floor: 1, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Climatisation'] },
+        { hotel_id: hotel.id, number: '103', type: 'double', capacity: 2, price_per_night: 95, floor: 1, status: 'maintenance', amenities: ['WiFi', 'TV Canal+', 'Climatisation'] },
+        { hotel_id: hotel.id, number: '201', type: 'double', capacity: 2, price_per_night: 95, floor: 2, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Climatisation', 'Minibar'] },
+        { hotel_id: hotel.id, number: '202', type: 'family', capacity: 4, price_per_night: 150, floor: 2, status: 'occupied', amenities: ['WiFi', 'TV Canal+', 'Climatisation', 'Minibar'] },
+        { hotel_id: hotel.id, number: '301', type: 'suite', capacity: 2, price_per_night: 200, floor: 3, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer'] },
+        { hotel_id: hotel.id, number: '302', type: 'suite', capacity: 2, price_per_night: 250, floor: 3, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer', 'Balcon'] },
       ];
 
       const { data: createdRooms, error: roomsError } = await supabase
