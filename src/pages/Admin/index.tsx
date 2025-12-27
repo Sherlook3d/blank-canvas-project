@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { HotelTenant } from "@/lib/hotel-context";
+import { isAdmin } from "@/lib/admin-helpers";
 
 interface HotelWithStats extends HotelTenant {
   nbRooms?: number;
@@ -16,9 +19,29 @@ interface HotelWithStats extends HotelTenant {
 export default function AdminDashboard() {
   const [hotels, setHotels] = useState<HotelWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadHotels();
+    // Vérifier l'accès admin au chargement de la page
+    const checkAccess = async () => {
+      const allowed = await isAdmin();
+      if (!allowed) {
+        toast({
+          title: "Accès refusé",
+          description: "Cette page est réservée aux administrateurs du SaaS.",
+          variant: "destructive",
+        });
+        navigate("/", { replace: true });
+        return;
+      }
+
+      // Si admin, on peut charger les hôtels
+      loadHotels();
+    };
+
+    void checkAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadHotels() {
