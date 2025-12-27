@@ -241,7 +241,7 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialo
             <div className="grid gap-2">
               <Label>Options</Label>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                {['Ventilateur', 'Climatiseur', 'WiFi', 'TV Canal+', 'Eau chaude'].map((amenity) => (
+                {['Ventilateur', 'Climatisation', 'WiFi', 'TV', 'Eau chaude', 'Minibar', 'Balcon', 'Jacuzzi', 'Vue mer'].map((amenity) => (
                   <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
                     <input
                       type="checkbox"
