@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { HotelTenant } from "@/lib/hotel-context";
 import { isAdmin } from "@/lib/admin-helpers";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Eye, Pencil, RefreshCw, Pause, Play, KeyRound, CreditCard, BarChart3, Users, Mail, StickyNote, Download, Trash2, MoreHorizontal } from "lucide-react";
 interface HotelWithStats extends HotelTenant {
   nbRooms?: number;
   nbReservations?: number;
@@ -164,33 +165,87 @@ export default function AdminDashboard() {
                         : "-"}
                     </TableCell>
                     <TableCell>{Number(hotel.prix_mensuel || 0)}€</TableCell>
-                    <TableCell className="space-x-2">
-                      {hotel.statut !== "suspendu" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateHotelStatus(hotel.id, "suspendu")}
-                        >
-                          Suspendre
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateHotelStatus(hotel.id, "actif")}
-                        >
-                          Activer
-                        </Button>
-                      )}
-                      {hotel.statut === "trial" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => updateHotelStatus(hotel.id, "actif")}
-                        >
-                          Passer en actif
-                        </Button>
-                      )}
+                    <TableCell className="space-x-2 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="inline-flex items-center gap-2">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="hidden sm:inline">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-[220px]">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => console.log("Voir détails", hotel.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            <span>Voir détails</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Modifier", hotel.id)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Modifier</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Changer de plan", hotel.id)}>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            <span>Changer de plan</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateHotelStatus(
+                                hotel.id,
+                                hotel.statut === "suspendu" ? "actif" : "suspendu"
+                              )
+                            }
+                          >
+                            {hotel.statut === "suspendu" ? (
+                              <>
+                                <Play className="mr-2 h-4 w-4" />
+                                <span>Réactiver</span>
+                              </>
+                            ) : (
+                              <>
+                                <Pause className="mr-2 h-4 w-4" />
+                                <span>Suspendre</span>
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Se connecter en tant que", hotel.id)}>
+                            <KeyRound className="mr-2 h-4 w-4" />
+                            <span>Se connecter en tant que</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Gérer l'abonnement", hotel.id)}>
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            <span>Gérer l'abonnement</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Voir statistiques", hotel.id)}>
+                            <BarChart3 className="mr-2 h-4 w-4" />
+                            <span>Voir statistiques</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Gérer utilisateurs", hotel.id)}>
+                            <Users className="mr-2 h-4 w-4" />
+                            <span>Gérer utilisateurs</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Envoyer email", hotel.id)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            <span>Envoyer email</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Notes internes", hotel.id)}>
+                            <StickyNote className="mr-2 h-4 w-4" />
+                            <span>Notes internes</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log("Exporter données", hotel.id)}>
+                            <Download className="mr-2 h-4 w-4" />
+                            <span>Exporter données</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => console.log("Supprimer (double confirmation à implémenter)", hotel.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Supprimer</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
