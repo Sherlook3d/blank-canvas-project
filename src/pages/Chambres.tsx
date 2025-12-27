@@ -491,7 +491,7 @@ const Chambres = () => {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h4 className="font-semibold text-foreground">{roomTypeLabels[room.type]} {room.number}</h4>
-                      <p className="text-sm text-muted-foreground">{roomTypeLabels[room.type]} • Étage {room.floor}</p>
+                      <p className="text-sm text-muted-foreground">Chambre {room.number} • Étage {room.floor}</p>
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Users className="w-4 h-4" />
