@@ -75,12 +75,13 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
     amenities: [] as string[],
   });
 
-  if (!room) return null;
+  const activeReservation = room
+    ? reservations.find(
+        r => r.room_id === room.id && r.status === 'checked_in' && r.client
+      )
+    : undefined;
 
-  // Get current occupant
-  const activeReservation = reservations.find(
-    r => r.room_id === room.id && r.status === 'checked_in' && r.client
-  );
+  if (!room) return null;
 
   const handleEdit = () => {
     setEditData({
