@@ -85,10 +85,14 @@ const amenityIcons: Record<string, React.ElementType> = {
   '1 Lit (2 places)': BedDouble,
   '1 Lit (1 place)': BedDouble,
   Ventilateur: Wind,
-  'Climatiseur': Wind,
-  'WiFi': Wifi,
+  Climatisation: Wind,
+  WiFi: Wifi,
   'TV Canal+': Wine,
   'Eau chaude': Bath,
+  Minibar: Wine,
+  Balcon: Wine,
+  Jacuzzi: Bath,
+  'Vue mer': Wifi,
 };
 
 const Chambres = () => {
@@ -231,6 +235,25 @@ const Chambres = () => {
     cleaning: rooms.filter(r => r.status === 'cleaning').length,
     maintenance: rooms.filter(r => r.status === 'maintenance').length,
   };
+
+  const amenityLabels = [
+    'WiFi',
+    'TV Canal+',
+    'Climatisation',
+    'Eau chaude',
+    'Minibar',
+    'Balcon',
+    'Jacuzzi',
+    'Vue mer',
+  ];
+
+  const amenityStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    amenityLabels.forEach(label => {
+      counts[label] = rooms.filter(r => (r.amenities || []).includes(label)).length;
+    });
+    return counts;
+  }, [rooms]);
 
   const handleAddRoom = async () => {
     const success = await addRoom({
