@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Eye, Pencil, RefreshCw, Pause, Play, KeyRound, CreditCard, BarChart3, Users, Mail, StickyNote, Download, Trash2, MoreHorizontal } from "lucide-react";
 
 interface HotelWithStats extends HotelTenant {
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   const [newHotelName, setNewHotelName] = useState("");
   const [newHotelEmail, setNewHotelEmail] = useState("");
   const [newHotelPlan, setNewHotelPlan] = useState<HotelTenant["plan"]>("basic");
+  const [createError, setCreateError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -140,6 +142,8 @@ export default function AdminDashboard() {
   });
 
   async function handleCreateHotel() {
+    setCreateError(null);
+
     const parsed = newHotelSchema.safeParse({
       name: newHotelName,
       email: newHotelEmail,
@@ -149,6 +153,7 @@ export default function AdminDashboard() {
     if (!parsed.success) {
       const msg = parsed.error.issues[0]?.message ?? "Données invalides";
       toast({ title: "Formulaire incomplet", description: msg, variant: "destructive" });
+      setCreateError(msg);
       return;
     }
 
@@ -172,11 +177,17 @@ export default function AdminDashboard() {
 
     if (error) {
       console.error("Erreur création hôtel:", error);
+      const baseMessage =
+        error.message || error.hint || "Impossible de créer l'hôtel (erreur serveur).";
+      const details = error.details || error.code || null;
+      const fullMessage = details ? `${baseMessage} (${details})` : baseMessage;
+
       toast({
         title: "Erreur",
-        description: "Impossible de créer l'hôtel.",
+        description: fullMessage,
         variant: "destructive",
       });
+      setCreateError(fullMessage);
       return;
     }
 
@@ -185,6 +196,7 @@ export default function AdminDashboard() {
     setNewHotelName("");
     setNewHotelEmail("");
     setNewHotelPlan("basic");
+    setCreateError(null);
 
     toast({
       title: "Hôtel créé",
@@ -467,6 +479,12 @@ export default function AdminDashboard() {
                 <option value="enterprise">Enterprise</option>
               </select>
             </div>
+            {createError && (
+              <Alert variant="destructive">
+                <AlertTitle>Erreur lors de la création</AlertTitle>
+                <AlertDescription>{createError}</AlertDescription>
+              </Alert>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
