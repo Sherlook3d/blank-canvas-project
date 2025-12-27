@@ -619,8 +619,9 @@ const Chambres = () => {
                     >
                       Réserver
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleViewDetails(room)}>
-                      Détails
+                    <Button variant="outline" size="sm" onClick={() => handleViewDetails(room)} className="gap-1.5">
+                      <Edit2 className="w-3.5 h-3.5" />
+                      Modifier
                     </Button>
                   </div>
                 </div>
