@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 
 // Types
 export type RoomStatus = 'available' | 'occupied' | 'maintenance' | 'cleaning';
-export type RoomType = 'single' | 'double' | 'suite' | 'family';
+export type RoomType = 'single' | 'double' | 'suite' | 'family' | 'bungalow';
 export type ReservationStatus = 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
 export type PaymentStatus = 'pending' | 'partial' | 'paid';
 

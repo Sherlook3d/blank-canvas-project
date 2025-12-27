@@ -50,6 +50,7 @@ const roomTypeLabels: Record<RoomType, string> = {
   double: 'Double',
   suite: 'Suite',
   family: 'Familiale',
+  bungalow: 'Bungalow',
 };
 
 const formatDate = (dateStr: string) => {
