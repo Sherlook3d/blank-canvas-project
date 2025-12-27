@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BedDouble, Users, Wifi, Wind, Wine, Bath, Edit2, Trash2, User } from 'lucide-react';
+import { BedDouble, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,15 +29,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Room, RoomType, RoomStatus, useHotel, Client, Reservation } from '@/contexts/HotelContext';
+import { Room, RoomType, RoomStatus, useHotel } from '@/contexts/HotelContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface RoomDetailsDialogProps {
   room: Room | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  startInEdit?: boolean;
 }
 
 const roomTypeLabels: Record<RoomType, string> = {
@@ -48,23 +46,8 @@ const roomTypeLabels: Record<RoomType, string> = {
   bungalow: 'Bungalow',
 };
 
-const amenityIcons: Record<string, React.ElementType> = {
-  '1 Lit (2 places)': BedDouble,
-  '1 Lit (1 place)': BedDouble,
-  Ventilateur: Wind,
-  Climatiseur: Wind,
-  Climatisation: Wind,
-  WiFi: Wifi,
-  'Wi-Fi': Wifi,
-  'TV Canal+': Wine,
-  TV: Wine,
-  'Eau chaude': Bath,
-};
-
-export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = false }: RoomDetailsDialogProps) => {
-  const { reservations, updateRoom, deleteRoom } = useHotel();
-  const { formatCurrency } = useCurrency();
-  const [isEditing, setIsEditing] = useState(startInEdit);
+export const RoomDetailsDialog = ({ room, open, onOpenChange }: RoomDetailsDialogProps) => {
+  const { updateRoom, deleteRoom } = useHotel();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editData, setEditData] = useState({
@@ -78,32 +61,23 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
     amenities: [] as string[],
   });
 
-  const handleEdit = () => {
-    if (!room) return;
-    setEditData({
-      number: room.number,
-      type: room.type,
-      floor: room.floor || 1,
-      capacity: room.capacity,
-      price_per_night: room.price_per_night,
-      status: room.status,
-      description: room.description || '',
-      amenities: room.amenities || [],
-    });
-    setIsEditing(true);
-  };
-
+  // Pré-remplir le formulaire à chaque ouverture avec les données de la chambre
   useEffect(() => {
-    if (open && room && startInEdit) {
-      handleEdit();
+    if (open && room) {
+      setEditData({
+        number: room.number,
+        type: room.type,
+        floor: room.floor || 1,
+        capacity: room.capacity,
+        price_per_night: room.price_per_night,
+        status: room.status,
+        description: room.description || '',
+        amenities: room.amenities || [],
+      });
     }
-  }, [open, room, startInEdit]);
+  }, [open, room]);
 
   if (!room) return null;
-
-  const activeReservation = reservations.find(
-    r => r.room_id === room.id && r.status === 'checked_in' && r.client
-  );
 
   const handleSave = async () => {
     setIsSubmitting(true);
@@ -119,7 +93,7 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
     });
     setIsSubmitting(false);
     if (success) {
-      setIsEditing(false);
+      onOpenChange(false);
     }
   };
 
@@ -153,215 +127,176 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
               </div>
             </DialogTitle>
             <DialogDescription>
-              Détails de la chambre
+              Modifier la chambre
             </DialogDescription>
           </DialogHeader>
 
-          {isEditing ? (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit_number">Numéro</Label>
-                  <Input
-                    id="edit_number"
-                    value={editData.number}
-                    onChange={(e) => setEditData({ ...editData, number: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit_floor">Étage</Label>
-                  <Input
-                    id="edit_floor"
-                    type="number"
-                    value={editData.floor}
-                    onChange={(e) => setEditData({ ...editData, floor: parseInt(e.target.value) || 1 })}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit_type">Type</Label>
-                  <Select value={editData.type} onValueChange={(v) => setEditData({ ...editData, type: v as RoomType })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bungalow">Bungalow</SelectItem>
-                      <SelectItem value="suite">Suite</SelectItem>
-                      <SelectItem value="family">Familiale</SelectItem>
-                      <SelectItem value="single">Simple</SelectItem>
-                      <SelectItem value="double">Double</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit_capacity">Capacité (personnes)</Label>
-                  <Input
-                    id="edit_capacity"
-                    type="number"
-                    value={editData.capacity}
-                    onChange={(e) => setEditData({ ...editData, capacity: parseInt(e.target.value) || 2 })}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit_price">Prix/nuit (Ar)</Label>
-                  <Input
-                    id="edit_price"
-                    type="number"
-                    value={editData.price_per_night}
-                    onChange={(e) => setEditData({ ...editData, price_per_night: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit_status">Statut</Label>
-                  <Select value={editData.status} onValueChange={(v) => setEditData({ ...editData, status: v as RoomStatus })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">Disponible</SelectItem>
-                      <SelectItem value="occupied">Occupée</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="cleaning">Nettoyage</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_number">Numéro</Label>
+                <Input
+                  id="edit_number"
+                  value={editData.number}
+                  onChange={(e) => setEditData({ ...editData, number: e.target.value })}
+                />
               </div>
               <div className="grid gap-2">
-                <Label>Lit</Label>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {['1 Lit (2 places)', '1 Lit (1 place)'].map((amenity) => (
-                    <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-border bg-background"
-                        checked={editData.amenities.includes(amenity)}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setEditData((prev) => ({
-                            ...prev,
-                            amenities: checked
-                              ? [...prev.amenities, amenity]
-                              : prev.amenities.filter((a) => a !== amenity),
-                          }));
-                        }}
-                      />
-                      <span>{amenity}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Options</Label>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {['Ventilateur', 'Climatiseur', 'WiFi', 'TV Canal+', 'Eau chaude'].map((amenity) => (
-                    <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-border bg-background"
-                        checked={editData.amenities.includes(amenity)}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setEditData((prev) => ({
-                            ...prev,
-                            amenities: checked
-                              ? [...prev.amenities, amenity]
-                              : prev.amenities.filter((a) => a !== amenity),
-                          }));
-                        }}
-                      />
-                      <span>{amenity}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit_description">Description</Label>
-                <Textarea
-                  id="edit_description"
-                  value={editData.description}
-                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                  rows={2}
+                <Label htmlFor="edit_floor">Étage</Label>
+                <Input
+                  id="edit_floor"
+                  type="number"
+                  value={editData.floor}
+                  onChange={(e) => setEditData({ ...editData, floor: parseInt(e.target.value) || 1 })}
                 />
               </div>
             </div>
-          ) : (
-            <div className="space-y-4 py-4">
-              {/* Price */}
-              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <span className="text-sm text-muted-foreground">Prix par nuit</span>
-                <span className="text-lg font-semibold text-foreground">{formatCurrency(room.price_per_night)}</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_type">Type</Label>
+                <Select
+                  value={editData.type}
+                  onValueChange={(v) => setEditData({ ...editData, type: v as RoomType })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bungalow">Bungalow</SelectItem>
+                    <SelectItem value="suite">Suite</SelectItem>
+                    <SelectItem value="family">Familiale</SelectItem>
+                    <SelectItem value="single">Simple</SelectItem>
+                    <SelectItem value="double">Double</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              {/* Description */}
-              {room.description && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground">{room.description}</p>
-                </div>
-              )}
-
-              {/* Amenities */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-foreground">Équipements</h4>
-                <div className="grid grid-cols-2 gap-y-1 gap-x-4 text-sm">
-                  {room.amenities.map((amenity) => {
-                    const Icon = amenityIcons[amenity];
-                    return (
-                      <div key={amenity} className="flex items-center gap-1.5 px-1 py-0.5 rounded">
-                        {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
-                        <span>{amenity}</span>
-                      </div>
-                    );
+              <div className="grid gap-2">
+                <Label htmlFor="edit_capacity">Capacité (personnes)</Label>
+                <Input
+                  id="edit_capacity"
+                  type="number"
+                  value={editData.capacity}
+                  onChange={(e) => setEditData({
+                    ...editData,
+                    capacity: parseInt(e.target.value) || 2,
                   })}
-                </div>
+                />
               </div>
-
-              {/* Current Occupant */}
-              {room.status === 'occupied' && activeReservation?.client && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-foreground">Occupant actuel</h4>
-                  <div className="flex items-center gap-3 p-3 bg-accent/10 border border-accent/20 rounded-lg">
-                    <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                      <User className="w-5 h-5 text-accent" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {activeReservation.client.first_name} {activeReservation.client.last_name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {activeReservation.client.phone || activeReservation.client.email}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_price">Prix/nuit (Ar)</Label>
+                <Input
+                  id="edit_price"
+                  type="number"
+                  value={editData.price_per_night}
+                  onChange={(e) => setEditData({
+                    ...editData,
+                    price_per_night: parseFloat(e.target.value) || 0,
+                  })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_status">Statut</Label>
+                <Select
+                  value={editData.status}
+                  onValueChange={(v) => setEditData({ ...editData, status: v as RoomStatus })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Disponible</SelectItem>
+                    <SelectItem value="occupied">Occupée</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="cleaning">Nettoyage</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Lit</Label>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                {['1 Lit (2 places)', '1 Lit (1 place)'].map((amenity) => (
+                  <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-border bg-background"
+                      checked={editData.amenities.includes(amenity)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setEditData((prev) => ({
+                          ...prev,
+                          amenities: checked
+                            ? [...prev.amenities, amenity]
+                            : prev.amenities.filter((a) => a !== amenity),
+                        }));
+                      }}
+                    />
+                    <span>{amenity}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Options</Label>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                {['Ventilateur', 'Climatiseur', 'WiFi', 'TV Canal+', 'Eau chaude'].map((amenity) => (
+                  <label key={amenity} className="flex items-center gap-2 text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-border bg-background"
+                      checked={editData.amenities.includes(amenity)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setEditData((prev) => ({
+                          ...prev,
+                          amenities: checked
+                            ? [...prev.amenities, amenity]
+                            : prev.amenities.filter((a) => a !== amenity),
+                        }));
+                      }}
+                    />
+                    <span>{amenity}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit_description">Description</Label>
+              <Textarea
+                id="edit_description"
+                value={editData.description}
+                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                rows={2}
+              />
+            </div>
+          </div>
 
-          <DialogFooter>
-            {isEditing ? (
-              <>
-                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSubmitting}>
-                  Annuler
-                </Button>
-                <Button onClick={handleSave} disabled={isSubmitting || !editData.number}>
-                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" onClick={() => setShowDeleteConfirm(true)} className="text-destructive hover:text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Supprimer
-                </Button>
-                <Button variant="outline" onClick={handleEdit}>
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Modifier
-                </Button>
-              </>
-            )}
+          <DialogFooter className="flex justify-between gap-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-destructive hover:text-destructive"
+                disabled={isSubmitting}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Annuler
+              </Button>
+              <Button onClick={handleSave} disabled={isSubmitting || !editData.number}>
+                {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -376,7 +311,11 @@ export const RoomDetailsDialog = ({ room, open, onOpenChange, startInEdit = fals
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isSubmitting} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isSubmitting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               {isSubmitting ? 'Suppression...' : 'Supprimer'}
             </AlertDialogAction>
           </AlertDialogFooter>
