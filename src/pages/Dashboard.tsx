@@ -664,7 +664,7 @@ const Dashboard = () => {
                     status={room.status} 
                     className="absolute top-3 right-3"
                   />
-                  <div className="absolute bottom-3 left-3 px-2 py-1 bg-foreground/80 rounded text-xs font-medium text-background">
+                  <div className="absolute bottom-3 right-3 px-2 py-1 bg-foreground/80 rounded text-xs font-medium text-background">
                     {formatCurrency(room.price_per_night)}/nuit
                   </div>
                 </div>
@@ -682,20 +682,34 @@ const Dashboard = () => {
                     </div>
                   </div>
                   
-                  {/* Amenities */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {room.amenities.slice(0, 3).map((amenity) => {
-                      const Icon = amenityIcons[amenity];
+                  {/* Amenities recap - aligné sur la page Chambres */}
+                  <div className="space-y-1.5 mb-4 text-xs text-muted-foreground">
+                    {(() => {
+                      const beds = (room.amenities || []).filter(a => a.includes('Lit'));
+                      const options = (room.amenities || []).filter(a => !a.includes('Lit'));
                       return (
-                        <div 
-                          key={amenity} 
-                          className="flex items-center gap-1 text-xs text-muted-foreground"
-                        >
-                          {Icon && <Icon className="w-3 h-3" />}
-                          <span>{amenity}</span>
-                        </div>
+                        <>
+                          {beds.length > 0 && (
+                            <div className="flex gap-1.5 items-start">
+                              <BedDouble className="w-3 h-3 mt-0.5" />
+                              <span>
+                                <span className="font-medium text-foreground/80 mr-1">Lit :</span>
+                                {beds.join(', ')}
+                              </span>
+                            </div>
+                          )}
+                          {options.length > 0 && (
+                            <div className="flex gap-1.5 items-start">
+                              <Wifi className="w-3 h-3 mt-0.5" />
+                              <span>
+                                <span className="font-medium text-foreground/80 mr-1">Options :</span>
+                                {options.join(', ')}
+                              </span>
+                            </div>
+                          )}
+                        </>
                       );
-                    })}
+                    })()}
                   </div>
                   
                   {/* Actions */}
