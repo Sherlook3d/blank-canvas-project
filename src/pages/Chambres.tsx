@@ -528,20 +528,34 @@ const Chambres = () => {
                     </div>
                   )}
                   
-                  {/* Amenities */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {room.amenities.slice(0, 4).map((amenity) => {
-                      const Icon = amenityIcons[amenity];
+                  {/* Amenities recap */}
+                  <div className="space-y-1.5 mb-3 text-xs text-muted-foreground">
+                    {(() => {
+                      const beds = room.amenities.filter(a => a.includes('Lit'));
+                      const options = room.amenities.filter(a => !a.includes('Lit'));
                       return (
-                        <div 
-                          key={amenity} 
-                          className="flex items-center gap-1 text-xs text-muted-foreground"
-                        >
-                          {Icon && <Icon className="w-3 h-3" />}
-                          <span>{amenity}</span>
-                        </div>
+                        <>
+                          {beds.length > 0 && (
+                            <div className="flex gap-1.5 items-start">
+                              <BedDouble className="w-3 h-3 mt-0.5" />
+                              <span>
+                                <span className="font-medium text-foreground/80 mr-1">Lit :</span>
+                                {beds.join(', ')}
+                              </span>
+                            </div>
+                          )}
+                          {options.length > 0 && (
+                            <div className="flex gap-1.5 items-start">
+                              <Wifi className="w-3 h-3 mt-0.5" />
+                              <span>
+                                <span className="font-medium text-foreground/80 mr-1">Options :</span>
+                                {options.join(', ')}
+                              </span>
+                            </div>
+                          )}
+                        </>
                       );
-                    })}
+                    })()}
                   </div>
 
                   {/* Quick Status Actions - Always visible for non-occupied rooms */}
