@@ -132,7 +132,19 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative">
+        {/* Global loading overlay for auth actions */}
+        {(isLoading || isCreatingTestAccount) && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/80 rounded-2xl animate-fade-in">
+            <Loader2 className="w-6 h-6 mb-2 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground text-center">
+              {isCreatingTestAccount
+                ? 'Connexion au compte de démo...'
+                : 'Connexion en cours, merci de patienter...'}
+            </p>
+          </div>
+        )}
+
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
@@ -201,7 +213,7 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full" disabled={isLoading || isCreatingTestAccount}>
                     {isLoading ? 'Connexion...' : 'Se connecter'}
                   </Button>
 
@@ -305,8 +317,8 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Inscription...' : 'S\'inscrire'}
+                  <Button type="submit" className="w-full" disabled={isLoading || isCreatingTestAccount}>
+                    {isLoading ? "Inscription..." : "S'inscrire"}
                   </Button>
                 </form>
               </TabsContent>
