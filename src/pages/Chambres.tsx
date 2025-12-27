@@ -240,7 +240,7 @@ const Chambres = () => {
       status: newRoom.status,
       capacity: newRoom.type === 'single' ? 1 : newRoom.type === 'family' ? 4 : 2,
       price_per_night: roomTypePrices[newRoom.type],
-      amenities: ['Wi-Fi', 'Climatisation'],
+      amenities: [],
       description: null,
     });
     
@@ -297,7 +297,6 @@ const Chambres = () => {
         room={selectedRoom}
         open={showRoomDetails}
         onOpenChange={handleRoomDetailsClose}
-        startInEdit={true}
       />
 
       {/* New Reservation Dialog */}

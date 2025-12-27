@@ -14,13 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 const createDemoData = async (hotelId: string) => {
   // Create demo rooms
   const roomsData = [
-    { hotel_id: hotelId, number: '101', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation'] },
-    { hotel_id: hotelId, number: '102', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation'] },
-    { hotel_id: hotelId, number: '103', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'maintenance', amenities: ['WiFi', 'TV', 'Climatisation'] },
-    { hotel_id: hotelId, number: '201', type: 'double', capacity: 3, price_per_night: 120, floor: 2, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar'] },
-    { hotel_id: hotelId, number: '202', type: 'double', capacity: 3, price_per_night: 120, floor: 2, status: 'occupied', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar'] },
-    { hotel_id: hotelId, number: '301', type: 'suite', capacity: 4, price_per_night: 200, floor: 3, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer'] },
-    { hotel_id: hotelId, number: '302', type: 'suite', capacity: 4, price_per_night: 250, floor: 3, status: 'available', amenities: ['WiFi', 'TV', 'Climatisation', 'Minibar', 'Jacuzzi', 'Vue mer', 'Balcon'] },
+    { hotel_id: hotelId, number: '101', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Eau chaude'] },
+    { hotel_id: hotelId, number: '102', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Eau chaude'] },
+    { hotel_id: hotelId, number: '103', type: 'standard', capacity: 2, price_per_night: 85, floor: 1, status: 'maintenance', amenities: ['WiFi', 'TV Canal+', 'Eau chaude'] },
+    { hotel_id: hotelId, number: '201', type: 'double', capacity: 3, price_per_night: 120, floor: 2, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Eau chaude', 'Minibar'] },
+    { hotel_id: hotelId, number: '202', type: 'double', capacity: 3, price_per_night: 120, floor: 2, status: 'occupied', amenities: ['WiFi', 'TV Canal+', 'Eau chaude', 'Minibar'] },
+    { hotel_id: hotelId, number: '301', type: 'suite', capacity: 4, price_per_night: 200, floor: 3, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Eau chaude', 'Minibar', 'Jacuzzi', 'Vue mer'] },
+    { hotel_id: hotelId, number: '302', type: 'suite', capacity: 4, price_per_night: 250, floor: 3, status: 'available', amenities: ['WiFi', 'TV Canal+', 'Eau chaude', 'Minibar', 'Jacuzzi', 'Vue mer', 'Balcon'] },
   ];
 
   const { data: rooms, error: roomsError } = await supabase
