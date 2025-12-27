@@ -738,7 +738,7 @@ const Dashboard = () => {
                         handleRoomClick(room);
                       }}
                     >
-                      Détails
+                      Modifier
                     </Button>
                   </div>
                 </div>
