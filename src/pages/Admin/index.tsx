@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,7 +12,10 @@ import { isAdmin } from "@/lib/admin-helpers";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Eye, Pencil, RefreshCw, Pause, Play, KeyRound, CreditCard, BarChart3, Users, Mail, StickyNote, Download, Trash2, MoreHorizontal } from "lucide-react";
+
 interface HotelWithStats extends HotelTenant {
   nbRooms?: number;
   nbReservations?: number;
@@ -28,6 +32,10 @@ export default function AdminDashboard() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<HotelTenant["statut"] | null>(null);
   const [pendingStatusHotel, setPendingStatusHotel] = useState<HotelWithStats | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newHotelName, setNewHotelName] = useState("");
+  const [newHotelEmail, setNewHotelEmail] = useState("");
+  const [newHotelPlan, setNewHotelPlan] = useState<HotelTenant["plan"]>("basic");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -81,6 +89,11 @@ export default function AdminDashboard() {
 
     if (error) {
       console.error("Erreur mise à jour statut hôtel:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut de l'hôtel.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -97,12 +110,86 @@ export default function AdminDashboard() {
 
     if (error) {
       console.error("Erreur mise à jour plan hôtel:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le plan de l'hôtel.",
+        variant: "destructive",
+      });
       return;
     }
 
     setHotels((prev) =>
       prev.map((h) => (h.id === id ? { ...h, plan, prix_mensuel } : h))
     );
+  }
+
+  const newHotelSchema = z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Le nom de l'hôtel est obligatoire" })
+      .max(120, { message: "Nom trop long" }),
+    email: z
+      .string()
+      .trim()
+      .email({ message: "Email invalide" })
+      .max(255, { message: "Email trop long" })
+      .optional()
+      .or(z.literal("")),
+    plan: z.enum(["basic", "premium", "enterprise"]),
+  });
+
+  async function handleCreateHotel() {
+    const parsed = newHotelSchema.safeParse({
+      name: newHotelName,
+      email: newHotelEmail,
+      plan: newHotelPlan,
+    });
+
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? "Données invalides";
+      toast({ title: "Formulaire incomplet", description: msg, variant: "destructive" });
+      return;
+    }
+
+    const prix_mensuel =
+      parsed.data.plan === "basic" ? 50 : parsed.data.plan === "premium" ? 100 : 200;
+
+    const { data, error } = await supabase
+      .from("hotels")
+      .insert({
+        name: parsed.data.name,
+        email: parsed.data.email || null,
+        plan: parsed.data.plan,
+        prix_mensuel,
+        statut: "actif",
+        module_finances: true,
+        module_statistiques: true,
+        module_facturation: false,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("Erreur création hôtel:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'hôtel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setHotels((prev) => [{ ...(data as HotelWithStats) }, ...prev]);
+    setAddDialogOpen(false);
+    setNewHotelName("");
+    setNewHotelEmail("");
+    setNewHotelPlan("basic");
+
+    toast({
+      title: "Hôtel créé",
+      description: "Le nouvel hôtel a été ajouté au dashboard.",
+    });
   }
 
   async function handleConfirmPlanChange() {
@@ -139,8 +226,11 @@ export default function AdminDashboard() {
   return (
     <div className="p-6 space-y-6">
       <Card className="shadow-card">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle>Dashboard Admin - Tous les hôtels clients</CardTitle>
+          <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+            + Ajouter un hôtel
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -292,6 +382,57 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un nouvel hôtel</DialogTitle>
+            <DialogDescription>
+              Ce formulaire crée un hôtel minimal (nom, email, plan). On étendra les champs ensuite.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="hotel-name">Nom de l'hôtel</Label>
+              <Input
+                id="hotel-name"
+                value={newHotelName}
+                onChange={(e) => setNewHotelName(e.target.value)}
+                placeholder="Ex : Hôtel Océan Bleu"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hotel-email">Email de contact</Label>
+              <Input
+                id="hotel-email"
+                type="email"
+                value={newHotelEmail}
+                onChange={(e) => setNewHotelEmail(e.target.value)}
+                placeholder="contact@hotel.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hotel-plan">Plan</Label>
+              <select
+                id="hotel-plan"
+                className="border bg-background text-sm rounded px-2 py-1 w-full"
+                value={newHotelPlan}
+                onChange={(e) => setNewHotelPlan(e.target.value as HotelTenant["plan"])}
+              >
+                <option value="basic">Basic</option>
+                <option value="premium">Premium</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleCreateHotel}>Créer l'hôtel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
         <DialogContent>
