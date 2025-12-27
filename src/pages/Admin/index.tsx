@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { HotelTenant } from "@/lib/hotel-context";
 import { isAdmin } from "@/lib/admin-helpers";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Eye, Pencil, RefreshCw, Pause, Play, KeyRound, CreditCard, BarChart3, Users, Mail, StickyNote, Download, Trash2, MoreHorizontal } from "lucide-react";
 interface HotelWithStats extends HotelTenant {
   nbRooms?: number;
@@ -20,6 +22,12 @@ interface HotelWithStats extends HotelTenant {
 export default function AdminDashboard() {
   const [hotels, setHotels] = useState<HotelWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedHotel, setSelectedHotel] = useState<HotelWithStats | null>(null);
+  const [planDialogOpen, setPlanDialogOpen] = useState(false);
+  const [planDraft, setPlanDraft] = useState<HotelTenant["plan"]>("basic");
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<HotelTenant["statut"] | null>(null);
+  const [pendingStatusHotel, setPendingStatusHotel] = useState<HotelWithStats | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -95,6 +103,29 @@ export default function AdminDashboard() {
     setHotels((prev) =>
       prev.map((h) => (h.id === id ? { ...h, plan, prix_mensuel } : h))
     );
+  }
+
+  async function handleConfirmPlanChange() {
+    if (!selectedHotel) return;
+    await updateHotelPlan(selectedHotel.id, planDraft);
+    toast({
+      title: "Plan mis à jour",
+      description: `Le plan de ${selectedHotel.name} est maintenant ${planDraft}.`,
+    });
+    setPlanDialogOpen(false);
+    setSelectedHotel(null);
+  }
+
+  async function handleConfirmStatusChange() {
+    if (!pendingStatusHotel || !pendingStatus) return;
+    await updateHotelStatus(pendingStatusHotel.id, pendingStatus);
+    toast({
+      title: pendingStatus === "suspendu" ? "Hôtel suspendu" : "Hôtel réactivé",
+      description: `${pendingStatusHotel.name} est maintenant ${pendingStatus}.`,
+    });
+    setStatusDialogOpen(false);
+    setPendingStatus(null);
+    setPendingStatusHotel(null);
   }
 
   if (loading) {
@@ -184,17 +215,24 @@ export default function AdminDashboard() {
                             <Pencil className="mr-2 h-4 w-4" />
                             <span>Modifier</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => console.log("Changer de plan", hotel.id)}>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedHotel(hotel);
+                              setPlanDraft(hotel.plan);
+                              setPlanDialogOpen(true);
+                            }}
+                          >
                             <RefreshCw className="mr-2 h-4 w-4" />
                             <span>Changer de plan</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              updateHotelStatus(
-                                hotel.id,
-                                hotel.statut === "suspendu" ? "actif" : "suspendu"
-                              )
-                            }
+                            onClick={() => {
+                              const nextStatus: HotelTenant["statut"] =
+                                hotel.statut === "suspendu" ? "actif" : "suspendu";
+                              setPendingStatusHotel(hotel);
+                              setPendingStatus(nextStatus);
+                              setStatusDialogOpen(true);
+                            }}
                           >
                             {hotel.statut === "suspendu" ? (
                               <>
@@ -254,6 +292,62 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Changer le plan</DialogTitle>
+            <DialogDescription>
+              Sélectionne un nouveau plan pour cet hôtel. Ce modal est un placeholder, on affinera la logique plus tard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="text-sm text-muted-foreground">
+              Hôtel : <span className="font-medium text-foreground">{selectedHotel?.name}</span>
+            </div>
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-muted-foreground">Nouveau plan</span>
+              <select
+                className="border bg-background text-sm rounded px-2 py-1"
+                value={planDraft}
+                onChange={(e) => setPlanDraft(e.target.value as HotelTenant["plan"])}
+              >
+                <option value="basic">Basic</option>
+                <option value="premium">Premium</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPlanDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleConfirmPlanChange}>Confirmer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingStatus === "suspendu" ? "Suspendre l'hôtel ?" : "Réactiver l'hôtel ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStatus === "suspendu"
+                ? "L'hôtel sera mis en pause. Les utilisateurs ne pourront plus s'y connecter."
+                : "L'hôtel sera à nouveau actif pour ses utilisateurs."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmStatusChange}>
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
