@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 import RegisterPage from "./pages/Register";
 import AdminDashboard from "./pages/Admin";
+import AdminUsersPage from "./pages/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,14 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["owner"]}>
                           <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/admins"
+                      element={
+                        <ProtectedRoute allowedRoles={["owner"]}>
+                          <AdminUsersPage />
                         </ProtectedRoute>
                       }
                     />
